@@ -78,11 +78,7 @@ Python project controlled and was able to make sure was maintained.
 While this project is, strictly speaking, geared towards the needs of
 the Python project, the abstraction design goal should make it
 relatively straight-forward to fork this project and to modify it as
-necessary for your own needs. The project would also be amenable to
-tweaking APIs and such to add needed flexibility for forks. There is
-also the potential to even merge alternative host implementations
-if a fork of this project with a different host implementation(s)
-were to come into existence.
+necessary for your own needs.
 
 ## Control flow
 The key piece of legal information one must know is that the instant
