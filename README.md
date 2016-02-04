@@ -93,7 +93,7 @@ their original CLA).
 
 All of this leads to the following pseuodcode under GitHub:
 
-```python3
+```Python
 if pull_request.is_opened:
     usernames = pull_request.committers
     if signed_cla(pull_request, username, new=True):  # Could cache the result.
