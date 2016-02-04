@@ -96,7 +96,7 @@ All of this leads to the following pseuodcode under GitHub:
 ```python3
 if pull_request.is_opened:
     usernames = pull_request.committers
-    if signed_cla(username):
+    if signed_cla(pull_request, username, new=True):  # Could cache the result.
         pull_request.add_label(OK)
     else:
         pull_request.add_label(no_CLA)
@@ -117,17 +117,13 @@ elif pull_request.label_removed:
         pull_request.add_label(no_CLA)
 elif pull_request.synchronized:  # Code updated.
     usernames = pull_request.committers
+    signed_ok = signed_cla(pull_request, usernames)  # Checks cache.
     old_cla_label = pull_request.cla_label()
-    if usernames == [pull_request.author] and old_cla_label == CLA_OK:
-        # No name to check again as we already cleared this pull request.
-        # This is an optimization to lower load on bugs.python.org and may
-        # not be worth it.
-        pass
-    elif signed_cla(usernames) and old_cla_label == no_CLA:
+    if signed_ok and old_cla_label == no_CLA:
         # The unlabeling will trigger the bot for the label removal.
         pull_request.remove_bad_labels()
-    elif not signed_cla(usernames) and old_cla_label == CLA_OK:
-        pull_request.remove_bad_labels()
+    elif not signed_ok and old_cla_label == CLA_OK:
+        pull_request.remove_good_labels()
 ```
 
 ## About the project's name
