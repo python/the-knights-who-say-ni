@@ -31,7 +31,7 @@ class ContribHost(metaclass=abc.ABCMeta):
         return '*', '/'
 
     @abc.abstractclassmethod
-    async def process(cls, request: web.Request) -> t.Optional['ContribHost']:
+    async def process(cls, request: t.Any) -> t.Optional['ContribHost']:
         """Process a request, returning None if there's nothing to do."""
         return None
 

@@ -8,7 +8,10 @@ from . import CLAHost
 
 async def webhook(request: web.Request) -> web.StreamResponse:
     """Handle a webhook trigger from the contribution host."""
-    contribution = await ContribHost.process(request)
+    # aiohttp doesn't document the constructor for web.Request, so its use
+    # is abstrated out to make testing easier.
+    payload = request.json()
+    contribution = await ContribHost.process(payload)
     if contribution is None:
         return ContribHost.nothing_to_do()
     usernames = await contribution.usernames()

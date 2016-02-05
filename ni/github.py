@@ -34,8 +34,7 @@ class Host(abc.ContribHost):
 
         Only need to process opened, unlabeled, synchronized events.
         """
-        payload = await request.json()
-        if payload['action'] not in cls._acceptable_actions:
+        if request['action'] not in cls._acceptable_actions:
             return None
         # XXX opened
         # XXX unlabeled
