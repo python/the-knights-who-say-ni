@@ -5,6 +5,7 @@ license agreement (CLA; an example of a CLA is the
 [PSF CLA](https://www.python.org/psf/contrib/contrib-form/)).
 
 [![Build Status](https://travis-ci.org/brettcannon/knights-who-say-ni.svg?branch=master)](https://travis-ci.org/brettcannon/knights-who-say-ni)
+[![codecov.io](https://codecov.io/github/brettcannon/knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/brettcannon/knights-who-say-ni?branch=master)
 
 ## Why is this project necessary?
 A CLA is necessary to make sure that someone contributing to an
