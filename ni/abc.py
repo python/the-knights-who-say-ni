@@ -1,10 +1,10 @@
 import abc
-import typing at t
+import typing as t
 
 from aiohttp import web
 
 
-class ServerHost(metaclass=abc.Meta):
+class ServerHost(metaclass=abc.ABCMeta):
 
     """Abstract base class for the server hosting platform."""
 
@@ -13,7 +13,7 @@ class ServerHost(metaclass=abc.Meta):
         """Specify the port to bind the listening socket to."""
 
 
-class ContribHost(metaclas=abc.Meta):
+class ContribHost(metaclass=abc.ABCMeta):
 
     """Abstract base class for the contribution/pull request platform."""
 
@@ -23,7 +23,7 @@ class ContribHost(metaclas=abc.Meta):
         return '*', '/'
 
     @abc.abstractclassmethod
-    async def process(cls, request: web.Request) -> t.Optional[ContribHost]:
+    async def process(cls, request: web.Request) -> t.Optional['ContribHost']:
         """Process a request, returning None if there's nothing to do."""
         return None
 
@@ -33,6 +33,6 @@ class ContribHost(metaclas=abc.Meta):
         return web.StreamResponse()
 
 
-class CLAHost(metaclass=abc.Meta):
+class CLAHost(metaclass=abc.ABCMeta):
 
     """Abstract base class for the CLA records platform."""
