@@ -47,12 +47,6 @@ class Host(abc.ContribHost):
         # XXX unlabeled; might not care based on who the 'sender' is.
         # XXX synchronize
 
-    @staticmethod
-    def nothing_to_do() -> web.StreamResponse:
-        """Return a response saying nothing is needed."""
-        # XXX what does GitHub want as a response?
-        raise NotImplementedError
-
     async def usernames(self):
         """Return an iterable with all of the contributors' usernames."""
         # XXX

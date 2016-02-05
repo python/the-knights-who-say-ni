@@ -35,10 +35,9 @@ class ContribHost(metaclass=abc.ABCMeta):
     async def process(cls, request: t.Any) -> t.Optional['ContribHost']:
         """Process a request, returning None if there's nothing to do."""
 
-    @abc.abstractstaticmethod
     def nothing_to_do() -> web.StreamResponse:
         """Respond to the contribution, signaling there's nothing to do."""
-        return web.Response(status=501)    # pragma: no cover
+        return web.Response(status=204)
 
     @abc.abstractmethod
     async def usernames(self) -> t.Iterable[str]:

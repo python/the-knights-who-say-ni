@@ -30,3 +30,8 @@ class GitHubTests(unittest.TestCase):
             request = {'action': event.value}
             result = loop.run_until_complete(github.Host.process(request))
             self.assertIsNone(result)
+
+    def test_nothing_to_do(self):
+        # Return a 204.
+        response = github.Host.nothing_to_do()
+        self.assertEqual(response.status, 204)
