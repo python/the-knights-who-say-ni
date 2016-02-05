@@ -3,6 +3,7 @@ from aiohttp import web
 
 from . import ContribHost
 from . import ServerHost
+from . import CLAHost
 
 
 async def webhook(request: web.Request) -> web.StreamResponse:
@@ -10,7 +11,10 @@ async def webhook(request: web.Request) -> web.StreamResponse:
     contribution = await ContribHost.process(request)
     if contribution is None:
         return ContribHost.nothing_to_do()
-    # XXX do something; see README for outline
+    usernames = await contribution.usernames()
+    cla_records = CLAHost()
+    cla_status = await cla_records.check(usernames)
+    return (await contribution.update(cla_status))
 
 
 if __name__ == '__main__':
