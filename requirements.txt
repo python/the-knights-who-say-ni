@@ -1,0 +1,2 @@
+# XXX Peg to specific versions once 1.0.0 is reached.
+aiohttp
