@@ -1,6 +1,10 @@
 language: python
 python:
   - "3.5"
+before_install:
+  - pip install codecov
+after_success:
+  - codecov
 install:
   - pip install -r requirements.txt
 script: python -m unittest discover -t . -s ni/test/
