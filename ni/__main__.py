@@ -8,6 +8,10 @@ from . import CLAHost
 
 async def webhook(request: web.Request) -> web.StreamResponse:
     """Handle a webhook trigger from the contribution host."""
+    # https://developer.github.com/webhooks/creating/#content-type
+    if request.content_type != 'application/json':
+        msg = 'can only accept application/json, not {}'.format(request.content_type)
+        return web.Response(status=415, text=msg)
     # aiohttp doesn't document the constructor for web.Request, so its use
     # is abstrated out to make testing easier.
     payload = request.json()
