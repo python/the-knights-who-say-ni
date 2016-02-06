@@ -11,7 +11,7 @@ from .. import github
 # http://aiohttp.readthedocs.org/en/stable/web_reference.html#aiohttp.web.Request
 class FakeRequest:
 
-    def __init__(self, payload, content_type='application/json'):
+    def __init__(self, payload={}, content_type='application/json'):
         self.content_type = content_type
         self._payload = payload
 
@@ -25,21 +25,24 @@ class GitHubTests(unittest.TestCase):
                   github.PullRequestEvent.unlabeled,
                   github.PullRequestEvent.synchronize}
 
-    def run_coroutine(self, coroutine):
+    def run_awaitable(self, coroutine):
         loop = asyncio.new_event_loop()
         self.addCleanup(loop.close)
         return loop.run_until_complete(coroutine)
 
-    @unittest.skip('not implemented')
     def test_bad_content_type(self):
         # Only accept 'application/json'.
-        ...
+        # https://developer.github.com/webhooks/creating/#content-type
+        request = FakeRequest(content_type='application/x-www-form-urlencoded')
+        result = self.run_awaitable(github.Host.process(request))
+        self.assertIsInstance(result, web.StreamResponse)
+        self.assertEqual(result.status, 415)
 
     def test_ping(self):
         # GitHub can ping a webhook to verify things are set up.
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
-        result = self.run_coroutine(github.Host.process(FakeRequest(payload)))
+        result = self.run_awaitable(github.Host.process(FakeRequest(payload)))
         self.assertIsInstance(result, web.StreamResponse)
         self.assertEqual(result.status, 204)
 
@@ -51,7 +54,7 @@ class GitHubTests(unittest.TestCase):
                 continue
             payload = {'action': event.value}
             request = FakeRequest(payload)
-            result = self.run_coroutine(github.Host.process(request))
+            result = self.run_awaitable(github.Host.process(request))
             self.assertIsInstance(result, web.StreamResponse)
             self.assertEqual(result.status, 204)
 
