@@ -1,8 +1,14 @@
 import enum
+import typing as t
 
 from aiohttp import web
 
 from . import abc
+
+
+LABEL_PREFIX = 'CLA: '
+OK_CLA = LABEL_PREFIX + '✓'
+NO_CLA = LABEL_PREFIX + '✗'
 
 
 enum.unique
@@ -28,11 +34,13 @@ class Host(abc.ContribHost):
                             PullRequestEvent.unlabeled.value,
                             PullRequestEvent.synchronize.value}
 
-    def __init__(self, request):
+    def __init__(self, event: PullRequestEvent, request: t.Any):
+        """Represent a contribution."""
+        self.event = event
         self.request = request
 
     @classmethod
-    async def process(cls, request):
+    def process(cls, request):
         """Process the pull request.
 
         Only need to process opened, unlabeled, synchronized events.
@@ -43,9 +51,20 @@ class Host(abc.ContribHost):
             return None
         elif request['action'] not in cls._acceptable_actions:
             return None
-        # XXX opened
-        # XXX unlabeled; might not care based on who the 'sender' is.
-        # XXX synchronize
+        elif request['action'] == PullRequestEvent.opened.value:
+            return cls(PullRequestEvent.opened, request)
+        elif request['action'] == PullRequestEvent.unlabeled.value:
+            label = request['label']['name']
+            if not label.startswith(LABEL_PREFIX):
+                return None
+            return cls(PullRequestEvent.unlabeled, request)
+        elif request['action'] == PullRequestEvent.synchronize.value:
+            return cls(PullRequestEvent.synchronize, request)
+        else:  # pragma: no cover
+            # Should never happen.
+            msg = "don't know how to handle a {!r} event".format(
+                request['action'])
+            raise TypeError(msg)
 
     async def usernames(self):
         """Return an iterable with all of the contributors' usernames."""
