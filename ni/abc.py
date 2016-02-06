@@ -32,12 +32,13 @@ class ContribHost(metaclass=abc.ABCMeta):
         return '*', '/'  # pragma: no cover
 
     @abc.abstractclassmethod
-    def process(cls, request: t.Any) -> t.Optional['ContribHost']:
-        """Process a request, returning None if there's nothing to do."""
+    async def process(cls, request: t.Any) -> t.Union['ContribHost', web.StreamResponse]:
+        """Process a request, returning an instance of this class.
 
-    def nothing_to_do() -> web.StreamResponse:
-        """Respond to the contribution, signaling there's nothing to do."""
-        return web.Response(status=204)
+        If there is nothing to do (which includes errors), then an instance of
+        aiohttp.web.StreamResponse is returned.
+        """
+        return web.Response(status=510)  # pragma: no cover
 
     @abc.abstractmethod
     async def usernames(self) -> t.Iterable[str]:

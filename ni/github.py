@@ -30,9 +30,9 @@ class Host(abc.ContribHost):
 
     route = 'POST', '/github'
 
-    _acceptable_actions =  {PullRequestEvent.opened.value,
-                            PullRequestEvent.unlabeled.value,
-                            PullRequestEvent.synchronize.value}
+    _useful_actions =  {PullRequestEvent.opened.value,
+                        PullRequestEvent.unlabeled.value,
+                        PullRequestEvent.synchronize.value}
 
     def __init__(self, event: PullRequestEvent, request: t.Any):
         """Represent a contribution."""
@@ -40,30 +40,33 @@ class Host(abc.ContribHost):
         self.request = request
 
     @classmethod
-    def process(cls, request):
-        """Process the pull request.
+    async def process(cls, request):
+        """Process the pull request."""
+        # https://developer.github.com/webhooks/creating/#content-type
+        if request.content_type != 'application/json':
+            msg = 'can only accept application/json, not {}'.format(request.content_type)
+            return web.Response(status=415, text=msg)
 
-        Only need to process opened, unlabeled, synchronized events.
-        """
-        if 'zen' in request:
+        payload = await request.json()
+        if 'zen' in payload:
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
-            return None
-        elif request['action'] not in cls._acceptable_actions:
-            return None
-        elif request['action'] == PullRequestEvent.opened.value:
-            return cls(PullRequestEvent.opened, request)
-        elif request['action'] == PullRequestEvent.unlabeled.value:
-            label = request['label']['name']
+            return web.Response(status=204)
+        elif payload['action'] not in cls._useful_actions:
+            return web.Response(status=204)
+        elif payload['action'] == PullRequestEvent.opened.value:
+            return cls(PullRequestEvent.opened, payload)
+        elif payload['action'] == PullRequestEvent.unlabeled.value:
+            label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
-                return None
-            return cls(PullRequestEvent.unlabeled, request)
-        elif request['action'] == PullRequestEvent.synchronize.value:
-            return cls(PullRequestEvent.synchronize, request)
+                return web.Response(status=204)
+            return cls(PullRequestEvent.unlabeled, payload)
+        elif payload['action'] == PullRequestEvent.synchronize.value:
+            return cls(PullRequestEvent.synchronize, payload)
         else:  # pragma: no cover
             # Should never happen.
             msg = "don't know how to handle a {!r} event".format(
-                request['action'])
+                payload['action'])
             raise TypeError(msg)
 
     async def usernames(self):
