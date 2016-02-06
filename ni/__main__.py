@@ -15,7 +15,7 @@ async def webhook(request: web.Request) -> web.StreamResponse:
     # aiohttp doesn't document the constructor for web.Request, so its use
     # is abstracted out to make testing easier.
     payload = await request.json()
-    contribution = await ContribHost.process(payload)
+    contribution = ContribHost.process(payload)
     if contribution is None:
         return ContribHost.nothing_to_do()
     usernames = await contribution.usernames()

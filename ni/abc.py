@@ -32,7 +32,7 @@ class ContribHost(metaclass=abc.ABCMeta):
         return '*', '/'  # pragma: no cover
 
     @abc.abstractclassmethod
-    async def process(cls, request: t.Any) -> t.Optional['ContribHost']:
+    def process(cls, request: t.Any) -> t.Optional['ContribHost']:
         """Process a request, returning None if there's nothing to do."""
 
     def nothing_to_do() -> web.StreamResponse:
