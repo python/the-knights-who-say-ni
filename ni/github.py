@@ -7,11 +7,11 @@ from . import abc
 
 
 LABEL_PREFIX = 'CLA: '
-OK_CLA = LABEL_PREFIX + '✓'
+CLA_OK = LABEL_PREFIX + '✓'
 NO_CLA = LABEL_PREFIX + '✗'
 
 
-enum.unique
+@enum.unique
 class PullRequestEvent(enum.Enum):
     # https://developer.github.com/v3/activity/events/types/#pullrequestevent
     assigned = "assigned"

@@ -58,14 +58,31 @@ class GitHubTests(unittest.TestCase):
             self.assertIsInstance(result, web.StreamResponse)
             self.assertEqual(result.status, 204)
 
-    @unittest.skip('not implemented')
     def test_process_opened(self):
-        ...
+        payload = {'action': github.PullRequestEvent.opened.value}
+        request = FakeRequest(payload)
+        result = self.run_awaitable(github.Host.process(request))
+        self.assertIsInstance(result, github.Host)
+        self.assertEqual(result.event, github.PullRequestEvent.opened)
 
-    @unittest.skip('not implemented')
     def test_process_unlabeled(self):
-        ...
+        # Test a CLA label being removed.
+        payload = {'action': github.PullRequestEvent.unlabeled.value,
+                   'label': {'name': github.CLA_OK}}
+        request = FakeRequest(payload)
+        result = self.run_awaitable(github.Host.process(request))
+        self.assertIsInstance(result, github.Host)
+        self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
+        # Test a non-CLA label being removed.
+        payload['label']['name'] = 'missing something or other'
+        request = FakeRequest(payload)
+        result = self.run_awaitable(github.Host.process(request))
+        self.assertIsInstance(result, web.StreamResponse)
+        self.assertEqual(result.status, 204)
 
-    @unittest.skip('not implemented')
     def test_process_synchronize(self):
-        ...
+        payload = {'action': github.PullRequestEvent.synchronize.value}
+        request = FakeRequest(payload)
+        result = self.run_awaitable(github.Host.process(request))
+        self.assertIsInstance(result, github.Host)
+        self.assertEqual(result.event, github.PullRequestEvent.synchronize)
