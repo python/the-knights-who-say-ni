@@ -6,6 +6,7 @@ license agreement (CLA; an example of a CLA is the
 
 [![Build Status](https://travis-ci.org/brettcannon/knights-who-say-ni.svg?branch=master)](https://travis-ci.org/brettcannon/knights-who-say-ni)
 [![codecov.io](https://codecov.io/github/brettcannon/knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/brettcannon/knights-who-say-ni?branch=master)
+[![Requirements Status](https://requires.io/github/brettcannon/knights-who-say-ni/requirements.svg?branch=master)](https://requires.io/github/brettcannon/knights-who-say-ni/requirements/?branch=master)
 
 ## Why is this project necessary?
 A CLA is necessary to make sure that someone contributing to an
