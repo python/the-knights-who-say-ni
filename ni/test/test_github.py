@@ -3,6 +3,7 @@ import unittest
 
 from aiohttp import hdrs, web
 
+from .. import abc
 from .. import github
 
 
@@ -34,17 +35,17 @@ class GitHubTests(unittest.TestCase):
         # Only accept 'application/json'.
         # https://developer.github.com/webhooks/creating/#content-type
         request = FakeRequest(content_type='application/x-www-form-urlencoded')
-        result = self.run_awaitable(github.Host.process(request))
-        self.assertIsInstance(result, web.StreamResponse)
-        self.assertEqual(result.status, 415)
+        with self.assertRaises(abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(request))
+        self.assertEqual(cm.exception.response.status, 415)
 
     def test_ping(self):
         # GitHub can ping a webhook to verify things are set up.
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
-        result = self.run_awaitable(github.Host.process(FakeRequest(payload)))
-        self.assertIsInstance(result, web.StreamResponse)
-        self.assertEqual(result.status, 204)
+        with self.assertRaises(abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(FakeRequest(payload)))
+        self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_skipping(self):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
@@ -54,15 +55,14 @@ class GitHubTests(unittest.TestCase):
                 continue
             payload = {'action': event.value}
             request = FakeRequest(payload)
-            result = self.run_awaitable(github.Host.process(request))
-            self.assertIsInstance(result, web.StreamResponse)
-            self.assertEqual(result.status, 204)
+            with self.assertRaises(abc.ResponseExit) as cm:
+                self.run_awaitable(github.Host.process(request))
+            self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_opened(self):
         payload = {'action': github.PullRequestEvent.opened.value}
         request = FakeRequest(payload)
         result = self.run_awaitable(github.Host.process(request))
-        self.assertIsInstance(result, github.Host)
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
     def test_process_unlabeled(self):
@@ -71,18 +71,16 @@ class GitHubTests(unittest.TestCase):
                    'label': {'name': github.CLA_OK}}
         request = FakeRequest(payload)
         result = self.run_awaitable(github.Host.process(request))
-        self.assertIsInstance(result, github.Host)
         self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
         # Test a non-CLA label being removed.
         payload['label']['name'] = 'missing something or other'
         request = FakeRequest(payload)
-        result = self.run_awaitable(github.Host.process(request))
-        self.assertIsInstance(result, web.StreamResponse)
-        self.assertEqual(result.status, 204)
+        with self.assertRaises(abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(request))
+        self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_synchronize(self):
         payload = {'action': github.PullRequestEvent.synchronize.value}
         request = FakeRequest(payload)
         result = self.run_awaitable(github.Host.process(request))
-        self.assertIsInstance(result, github.Host)
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)

@@ -1,4 +1,5 @@
 import abc
+import http
 import typing as t
 
 from aiohttp import web
@@ -6,7 +7,19 @@ from aiohttp import web
 import enum
 
 
+class ResponseExit(web.Response, Exception):
+
+    """Exception to raise when the current request should immediately exit."""
+
+    def __init__(self, *args, status: http.HTTPStatus, text: str=None):
+        super().__init__(*args)
+        self.response = web.Response(status=status.value, text=text)
+
+
 class Status(enum.Enum):
+
+    """The CLA status of the contribution."""
+
     SIGNED = 1
     NOT_SIGNED = 2
     MISSING_USERNAME = 3
@@ -32,13 +45,10 @@ class ContribHost(metaclass=abc.ABCMeta):
         return '*', '/'  # pragma: no cover
 
     @abc.abstractclassmethod
-    async def process(cls, request: web.Request) -> t.Union['ContribHost', web.StreamResponse]:
-        """Process a request, returning an instance of this class.
-
-        If there is nothing to do (which includes errors), then an instance of
-        aiohttp.web.StreamResponse is returned.
-        """
-        return web.Response(status=510)  # pragma: no cover
+    async def process(self, request: web.Request) -> 'ContribHost':
+        """Process a request into a contribution."""
+        # Method exists because __init__() cannot be a coroutine.
+        raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
 
     @abc.abstractmethod
     async def usernames(self) -> t.Iterable[str]:

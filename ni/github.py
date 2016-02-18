@@ -1,4 +1,5 @@
 import enum
+import http
 import typing as t
 
 from aiohttp import web
@@ -44,22 +45,24 @@ class Host(abc.ContribHost):
         """Process the pull request."""
         # https://developer.github.com/webhooks/creating/#content-type
         if request.content_type != 'application/json':
-            msg = 'can only accept application/json, not {}'.format(request.content_type)
-            return web.Response(status=415, text=msg)
+            msg = ('can only accept application/json, '
+                   'not {}').format(request.content_type)
+            raise abc.ResponseExit(
+                    status=http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE, text=msg)
 
         payload = await request.json()
         if 'zen' in payload:
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
-            return web.Response(status=204)
+            raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] not in cls._useful_actions:
-            return web.Response(status=204)
+            raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] == PullRequestEvent.opened.value:
             return cls(PullRequestEvent.opened, payload)
         elif payload['action'] == PullRequestEvent.unlabeled.value:
             label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
-                return web.Response(status=204)
+                raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
             return cls(PullRequestEvent.unlabeled, payload)
         elif payload['action'] == PullRequestEvent.synchronize.value:
             return cls(PullRequestEvent.synchronize, payload)
