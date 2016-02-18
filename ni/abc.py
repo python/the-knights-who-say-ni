@@ -22,7 +22,7 @@ class Status(enum.Enum):
 
     SIGNED = 1
     NOT_SIGNED = 2
-    MISSING_USERNAME = 3
+    USERNAME_NOT_FOUND = 3
 
 
 class ServerHost(metaclass=abc.ABCMeta):
@@ -33,6 +33,9 @@ class ServerHost(metaclass=abc.ABCMeta):
     def port(self) -> int:
         """Specify the port to bind the listening socket to."""
         raise NotImplementedError
+
+    def log(self, exc: Exception):
+        """Log the exception."""
 
 
 class ContribHost(metaclass=abc.ABCMeta):
@@ -52,12 +55,12 @@ class ContribHost(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def usernames(self) -> t.Iterable[str]:
-        """Return an iterable with all of the contributors' usernames."""
-        return []    # pragma: no cover
+        """Return an iterable of all the contributors' usernames."""
+        return []  # pragma: no cover
 
     @abc.abstractmethod
     async def update(self, status: Status) -> web.StreamResponse:
-        return web.Response(status=501)    # pragma: no cover
+        return web.Response(status=501)  # pragma: no cover
 
 
 class CLAHost(metaclass=abc.ABCMeta):
@@ -67,4 +70,4 @@ class CLAHost(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def check(self, usernames: t.Iterable[str]) -> Status:
         """Check if all of the specified usernames have signed the CLA."""
-        return Status.MISSING_USERNAME    # pragma: no cover
+        return Status.USERNAME_NOT_FOUND  # pragma: no cover

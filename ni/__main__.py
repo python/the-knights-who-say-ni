@@ -15,19 +15,19 @@ class Handler:
         self.server = server
         self.cla_records = cla_records
 
-    async def respond(request: web.Request) -> web.StreamResponse:
+    async def respond(request: web.Request) -> web.StreamResponse:  # XXX untested
         """Handle a webhook trigger from the contribution host."""
         try:
             contribution = ContribHost.process(request)
-            usernames = await contribution.usernames()
-            cla_status = await self.cla_records.check(usernames)
+            usernames = await contribution.usernames()  # XXX not implemented
+            cla_status = await self.cla_records.check(usernames)  # XXX not implemented
             # With a background queue, could add update as work and return
             # HTTP 202.
-            return (await contribution.update(cla_status))
+            return (await contribution.update(cla_status))  # XXX not implemented
         except abc.ResponseExit as exc:
             return exc.response
         except Exception as exc:
-            self.server.log(exc)
+            self.server.log(exc)  # XXX not implemented
             return web.Response(
                     status=http.HTTPStatus.INTERNAL_SERVER_ERROR.value)
 
