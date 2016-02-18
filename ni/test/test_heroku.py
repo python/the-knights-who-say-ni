@@ -1,3 +1,5 @@
+import contextlib
+import io
 import os
 import random
 import unittest
@@ -20,3 +22,20 @@ class HerokuTests(unittest.TestCase):
         self.addCleanup(reset_port)
         server = heroku.Host()
         self.assertEqual(server.port(), port)
+
+    def test_log(self):
+        # Traceback and exception should be written to stderr.
+        server = heroku.Host()
+        exc_type = NotImplementedError
+        exc_message = 'hello'
+        try:
+            raise exc_type(exc_message)
+        except Exception as caught:
+            exc = caught
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            server.log(exc)
+        logged = stderr.getvalue()
+        self.assertIn(exc_type.__name__, logged)
+        self.assertIn(exc_message, logged)
+        self.assertIn('Traceback', logged)
