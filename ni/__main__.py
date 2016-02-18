@@ -27,7 +27,7 @@ class Handler:
         except abc.ResponseExit as exc:
             return exc.response
         except Exception as exc:
-            self.server.log(exc)  # XXX not implemented
+            self.server.log(exc)
             return web.Response(
                     status=http.HTTPStatus.INTERNAL_SERVER_ERROR.value)
 
