@@ -8,7 +8,7 @@ from .. import github
 
 
 # Inheriting from web.Request is bad as the docs explicitly say not to create
-# instances manually.
+# instances manually. To work around that this faked request is provided.
 # http://aiohttp.readthedocs.org/en/stable/web_reference.html#aiohttp.web.Request
 class FakeRequest:
 
