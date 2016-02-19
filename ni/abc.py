@@ -70,4 +70,8 @@ class CLAHost(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def check(self, usernames: t.Iterable[str]) -> Status:
         """Check if all of the specified usernames have signed the CLA."""
+        # While it would technically share more specific information if a
+        # mapping of {username: Status} was returned, the vast majority of
+        # cases will be for a single user and thus not worth the added
+        # complexity to need to worry about it.
         return Status.USERNAME_NOT_FOUND  # pragma: no cover
