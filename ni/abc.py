@@ -21,9 +21,9 @@ class Status(enum.Enum):
 
     """The CLA status of the contribution."""
 
-    SIGNED = 1
-    NOT_SIGNED = 2
-    USERNAME_NOT_FOUND = 3
+    signed = 1
+    not_signed = 2
+    username_not_found = 3
 
 
 class ServerHost(metaclass=abc.ABCMeta):
