@@ -100,9 +100,8 @@ class Host(abc.ContribHost):
         commits = await self.get(pull_request['commits_url'])
         # For each commit, get the author and committer.
         for commit in commits:
-            commit_data = commit['commit']
-            logins.add(commit_data['author']['login'])
-            logins.add(commit_data['committer']['login'])
+            logins.add(commit['author']['login'])
+            logins.add(commit['committer']['login'])
         return frozenset(logins)
 
     async def update(self, status):

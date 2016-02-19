@@ -1,4 +1,6 @@
 import asyncio
+import json
+import pathlib
 import unittest
 
 from aiohttp import hdrs, web
@@ -20,11 +22,33 @@ class FakeRequest:
         return self._payload
 
 
+class OfflineHost(github.Host):
+
+    """A subclass of github.Host which does not touch the network."""
+
+    def __init__(self, *args, network, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._network = network
+
+    async def get(self, url):
+        return self._network[url]
+
+
 class GitHubTests(unittest.TestCase):
 
     acceptable = {github.PullRequestEvent.opened,
                   github.PullRequestEvent.unlabeled,
                   github.PullRequestEvent.synchronize}
+
+    @classmethod
+    def setUpClass(cls):
+        this_dir = pathlib.Path(__file__).parent
+        opened_example = this_dir/'examples'/'opened.json'
+        with opened_example.open('r') as file:
+            cls.opened_example = json.load(file)
+        commits_example = this_dir/'examples'/'commits.json'
+        with commits_example.open('r') as file:
+            cls.commits_example = json.load(file)
 
     def run_awaitable(self, coroutine):
         loop = asyncio.new_event_loop()
@@ -84,3 +108,15 @@ class GitHubTests(unittest.TestCase):
         request = FakeRequest(payload)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
+
+    def test_usernames(self):
+        # Should grab logins from the PR creator of the PR, and both the author
+        # and committer for every commit in the PR.
+        network = {'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits':
+                   self.commits_example}
+        contrib = OfflineHost(github.PullRequestEvent.opened,
+                              self.opened_example, session=None, network=network)
+        got = self.run_awaitable(contrib.usernames())
+        want = {'brettcannon', 'rbtcollins-author', 'rbtcollins-committer',
+                'dstufft-author', 'dstufft-committer'}
+        self.assertEqual(got, frozenset(want))
