@@ -7,7 +7,7 @@ from aiohttp import web
 import enum
 
 
-class ResponseExit(web.Response, Exception):
+class ResponseExit(Exception):
 
     """Exception to raise when the current request should immediately exit."""
 
