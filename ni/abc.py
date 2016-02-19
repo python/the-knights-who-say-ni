@@ -2,6 +2,7 @@ import abc
 import http
 import typing as t
 
+import aiohttp
 from aiohttp import web
 
 import enum
@@ -48,9 +49,10 @@ class ContribHost(metaclass=abc.ABCMeta):
         return '*', '/'  # pragma: no cover
 
     @abc.abstractclassmethod
-    async def process(self, request: web.Request) -> 'ContribHost':
+    async def process(self, request: web.Request,
+                      session: aiohttp.ClientSession=None) -> 'ContribHost':
         """Process a request into a contribution."""
-        # Method exists because __init__() cannot be a coroutine.
+        # This method exists because __init__() cannot be a coroutine.
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
 
     @abc.abstractmethod

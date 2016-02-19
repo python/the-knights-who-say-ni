@@ -1,4 +1,5 @@
 """Implement a server to check if a contribution is covered by a CLA(s)."""
+import aiohttp
 from aiohttp import web
 
 from . import abc
@@ -11,14 +12,16 @@ class Handler:
 
     """Handle requests from the contribution host."""
 
-    def __init__(self, server: ServerHost, cla_records: CLAHost):
+    def __init__(self, server: ServerHost, cla_records: CLAHost,
+                 session: aiohttp.ClientSession):
         self.server = server
         self.cla_records = cla_records
+        self.session = session
 
     async def respond(request: web.Request) -> web.StreamResponse:  # XXX untested
         """Handle a webhook trigger from the contribution host."""
         try:
-            contribution = ContribHost.process(request)
+            contribution = ContribHost.process(request, session=session)
             usernames = await contribution.usernames()  # XXX not implemented
             cla_status = await self.cla_records.check(usernames)  # XXX not implemented
             # With a work queue, one could make the updating of the
@@ -33,9 +36,10 @@ class Handler:
 
 
 if __name__ == '__main__':
+    app = web.Application()
+    session = aiohttp.ClientSession(loop=app.loop)
     server = ServerHost()
     cla_records = CLAHost()
-    handler = Handler(server, cla_records)
-    app = web.Application()
+    handler = Handler(server, cla_records, session)
     app.router.add_route(*ContribHost.route, handler.respond)
     web.run_app(app, port=server.port())
