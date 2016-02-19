@@ -25,8 +25,8 @@ class PullRequestEvent(enum.Enum):
     synchronize = "synchronize"
 
 
-JSONType = t.Union[str, int, float, bool, None, t.Mapping[str, 'JSONType'],
-                   t.List['JSONType']]
+JSONType = t.Union[str, int, float, bool, None, t.Dict[str, t.Any],
+                   t.List[t.Any]]
 
 
 class Host(abc.ContribHost):
