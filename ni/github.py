@@ -9,8 +9,8 @@ from . import abc
 
 
 LABEL_PREFIX = 'CLA: '
-CLA_OK = LABEL_PREFIX + '✓'
-NO_CLA = LABEL_PREFIX + '✗'
+CLA_OK = LABEL_PREFIX + '☑'
+NO_CLA = LABEL_PREFIX + '☐'
 
 
 @enum.unique
