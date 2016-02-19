@@ -21,8 +21,8 @@ class Handler:
             contribution = ContribHost.process(request)
             usernames = await contribution.usernames()  # XXX not implemented
             cla_status = await self.cla_records.check(usernames)  # XXX not implemented
-            # With a background queue, one could add the update as a work item
-            # and return an HTTP 202 response.
+            # With a work queue, one could make the updating of the
+            # contribution a work item and return an HTTP 202 response.
             return (await contribution.update(cla_status))  # XXX not implemented
         except abc.ResponseExit as exc:
             return exc.response
