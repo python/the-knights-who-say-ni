@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 before_install:
-  - pip install coverage codecov coveralls
+  - pip install coverage==4.1b2 codecov coveralls
 install:
   - pip install -r requirements.txt
 script: coverage run -m unittest discover -t . -s ni/test/
