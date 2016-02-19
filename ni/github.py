@@ -25,6 +25,10 @@ class PullRequestEvent(enum.Enum):
     synchronize = "synchronize"
 
 
+JSONType = t.Union[str, int, float, bool, None, t.Mapping['JSONType'],
+                   t.List['JSONType']]
+
+
 class Host(abc.ContribHost):
 
     """Implement a webhook for GitHub pull requests."""
@@ -35,7 +39,7 @@ class Host(abc.ContribHost):
                         PullRequestEvent.unlabeled.value,
                         PullRequestEvent.synchronize.value}
 
-    def __init__(self, event: PullRequestEvent, request: t.Any):
+    def __init__(self, event: PullRequestEvent, request: JSONType):
         """Represent a contribution."""
         self.event = event
         self.request = request
@@ -72,10 +76,27 @@ class Host(abc.ContribHost):
                 payload['action'])
             raise TypeError(msg)
 
+    async def get(self, url: str) -> JSONType:
+        """Make a GET request for some JSON data.
+
+        Abstracted out for easy testing w/o requiring internet access.
+        """
+        response = await aiohttp.get(url)
+        return (await response.json())
+
     async def usernames(self):
         """Return an iterable with all of the contributors' usernames."""
-        # XXX
-        return []    # pragma: no cover
+        pull_request = self.request['pull_request']
+        # Start with the author of the pull request.
+        logins = {pull_request['user']['login']}
+        # Fetch the commit data for the pull request.
+        commits = await self.get(pull_request['commits_url'])
+        # For each commit, get the author and committer.
+        for commit in commits:
+            commit_data = commit['commit']
+            logins.add(commit_data['author']['login'])
+            logins.add(commit_data['committer']['login'])
+        return frozenset(logins)
 
     async def update(self, status):
         # XXX
