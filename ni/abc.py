@@ -61,8 +61,8 @@ class ContribHost(metaclass=abc.ABCMeta):
         return []  # pragma: no cover
 
     @abc.abstractmethod
-    async def update(self, status: Status) -> web.StreamResponse:
-        return web.Response(status=501)  # pragma: no cover
+    async def update(self, status: Status):
+        """Update the contribution with the status of CLA coverage."""
 
 
 class CLAHost(metaclass=abc.ABCMeta):

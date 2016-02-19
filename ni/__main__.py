@@ -26,7 +26,8 @@ class Handler:
             cla_status = await self.cla_records.check(usernames)  # XXX blocked on b.p.o.
             # With a work queue, one could make the updating of the
             # contribution a work item and return an HTTP 202 response.
-            return (await contribution.update(cla_status))  # XXX not implemented
+            await contribution.update(cla_status)  # XXX not implemented
+            return web.Response(status=http.HTTPStatus.NO_CONTENT)
         except abc.ResponseExit as exc:
             return exc.response
         except Exception as exc:
