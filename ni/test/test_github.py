@@ -44,19 +44,20 @@ class GitHubTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         this_dir = pathlib.Path(__file__).parent
-        opened_example = this_dir/'examples'/'opened.json'
+        examples = this_dir / 'examples' / 'github'
+        opened_example = examples / 'opened.json'
         with opened_example.open('r') as file:
             cls.opened_example = json.load(file)
 
-        unlabeled_example = this_dir/'examples'/'unlabeled.json'
+        unlabeled_example = examples / 'unlabeled.json'
         with unlabeled_example.open('r') as file:
             cls.unlabeled_example = json.load(file)
 
-        sync_example = this_dir/'examples'/'synchronize.json'
+        sync_example = examples / 'synchronize.json'
         with sync_example.open('r') as file:
             cls.synchronize_example = json.load(file)
 
-        commits_example = this_dir/'examples'/'commits.json'
+        commits_example = examples / 'commits.json'
         with commits_example.open('r') as file:
             cls.commits_example = json.load(file)
 
