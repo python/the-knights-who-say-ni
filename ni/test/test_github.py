@@ -125,7 +125,7 @@ class GitHubTests(unittest.TestCase):
         network = {'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits':
                    self.commits_example}
         contrib = OfflineHost(github.PullRequestEvent.opened,
-                              self.opened_example, session=None, network=network)
+                              self.opened_example, network=network)
         got = self.run_awaitable(contrib.usernames())
         want = {'brettcannon', 'rbtcollins-author', 'rbtcollins-committer',
                 'dstufft-author', 'dstufft-committer'}

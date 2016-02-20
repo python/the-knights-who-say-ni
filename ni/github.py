@@ -40,15 +40,13 @@ class Host(abc.ContribHost):
                         PullRequestEvent.unlabeled.value,
                         PullRequestEvent.synchronize.value}
 
-    def __init__(self, event: PullRequestEvent, request: JSONType,
-                 session: aiohttp.ClientSession):
+    def __init__(self, event: PullRequestEvent, request: JSONType):
         """Represent a contribution."""
         self.event = event
         self.request = request
-        self.session = session
 
     @classmethod
-    async def process(cls, request, session=None):
+    async def process(cls, request):
         """Process the pull request."""
         # https://developer.github.com/webhooks/creating/#content-type
         if request.content_type != 'application/json':
@@ -65,14 +63,14 @@ class Host(abc.ContribHost):
         elif payload['action'] not in cls._useful_actions:
             raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] == PullRequestEvent.opened.value:
-            return cls(PullRequestEvent.opened, payload, session)
+            return cls(PullRequestEvent.opened, payload)
         elif payload['action'] == PullRequestEvent.unlabeled.value:
             label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
                 raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-            return cls(PullRequestEvent.unlabeled, payload, session)
+            return cls(PullRequestEvent.unlabeled, payload)
         elif payload['action'] == PullRequestEvent.synchronize.value:
-            return cls(PullRequestEvent.synchronize, payload, session)
+            return cls(PullRequestEvent.synchronize, payload)
         else:  # pragma: no cover
             # Should never happen.
             msg = "don't know how to handle a {!r} event".format(
@@ -84,12 +82,8 @@ class Host(abc.ContribHost):
 
         Abstracted out for easy testing w/o requiring internet access.
         """
-        if session is None:
-            response = await aiohttp.get(url)
+        async with abc.session().get(url) as response:
             return (await response.json())
-        else:
-            async with self.session.get(url) as response:
-                return (await response.json())
 
     async def usernames(self):
         """Return an iterable with all of the contributors' usernames."""

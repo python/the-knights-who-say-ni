@@ -1,4 +1,5 @@
 import abc
+import asyncio
 import http
 import typing as t
 
@@ -6,6 +7,27 @@ import aiohttp
 from aiohttp import web
 
 import enum
+
+loop = asyncio.get_event_loop
+
+def session_factory():
+    """Create a closure to create/cache a client session.
+
+    A single session should be used for the life of the server, but creating it
+    should be minimized as it will trigger the creation of an event loop which
+    is not necessary during testing.
+    """
+    _session = None
+    def session():
+        nonlocal _session
+        if _session is None:
+            _session = aiohttp.ClientSession(loop=loop())
+        return _session
+
+    return session
+
+session = session_factory()
+del session_factory
 
 
 class ResponseExit(Exception):
@@ -35,6 +57,7 @@ class ServerHost(metaclass=abc.ABCMeta):
         """Specify the port to bind the listening socket to."""
         raise NotImplementedError
 
+    @abc.abstractmethod
     def log(self, exc: Exception):
         """Log the exception."""
 
@@ -49,8 +72,7 @@ class ContribHost(metaclass=abc.ABCMeta):
         return '*', '/'  # pragma: no cover
 
     @abc.abstractclassmethod
-    async def process(self, request: web.Request,
-                      session: aiohttp.ClientSession=None) -> 'ContribHost':
+    async def process(self, request: web.Request) -> 'ContribHost':
         """Process a request into a contribution."""
         # This method exists because __init__() cannot be a coroutine.
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
