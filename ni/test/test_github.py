@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import pathlib
 import unittest
@@ -46,6 +47,15 @@ class GitHubTests(unittest.TestCase):
         opened_example = this_dir/'examples'/'opened.json'
         with opened_example.open('r') as file:
             cls.opened_example = json.load(file)
+
+        unlabeled_example = this_dir/'examples'/'unlabeled.json'
+        with unlabeled_example.open('r') as file:
+            cls.unlabeled_example = json.load(file)
+
+        sync_example = this_dir/'examples'/'synchronize.json'
+        with sync_example.open('r') as file:
+            cls.synchronize_example = json.load(file)
+
         commits_example = this_dir/'examples'/'commits.json'
         with commits_example.open('r') as file:
             cls.commits_example = json.load(file)
@@ -84,28 +94,27 @@ class GitHubTests(unittest.TestCase):
             self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_opened(self):
-        payload = {'action': github.PullRequestEvent.opened.value}
-        request = FakeRequest(payload)
+        request = FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
     def test_process_unlabeled(self):
         # Test a CLA label being removed.
-        payload = {'action': github.PullRequestEvent.unlabeled.value,
-                   'label': {'name': github.CLA_OK}}
-        request = FakeRequest(payload)
+        unlabeled_example_CLA = copy.deepcopy(self.unlabeled_example)
+        unlabeled_example_CLA['label']['name'] = github.CLA_OK
+        request = FakeRequest(unlabeled_example_CLA)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
         # Test a non-CLA label being removed.
-        payload['label']['name'] = 'missing something or other'
-        request = FakeRequest(payload)
+        unlabeled_example_other = copy.deepcopy(self.unlabeled_example)
+        unlabeled_example_other['label']['name'] = 'missing something or other'
+        request = FakeRequest(unlabeled_example_other)
         with self.assertRaises(abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(request))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_synchronize(self):
-        payload = {'action': github.PullRequestEvent.synchronize.value}
-        request = FakeRequest(payload)
+        request = FakeRequest(self.synchronize_example)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
 
