@@ -48,7 +48,7 @@ class Status(enum.Enum):
     username_not_found = 3
 
 
-class ServerHost(metaclass=abc.ABCMeta):
+class ServerHost(abc.ABC):
 
     """Abstract base class for the server hosting platform."""
 
@@ -62,7 +62,7 @@ class ServerHost(metaclass=abc.ABCMeta):
         """Log the exception."""
 
 
-class ContribHost(metaclass=abc.ABCMeta):
+class ContribHost(abc.ABC):
 
     """Abstract base class for the contribution/pull request platform."""
 
@@ -87,7 +87,7 @@ class ContribHost(metaclass=abc.ABCMeta):
         """Update the contribution with the status of CLA coverage."""
 
 
-class CLAHost(metaclass=abc.ABCMeta):
+class CLAHost(abc.ABC):
 
     """Abstract base class for the CLA records platform."""
 
