@@ -8,7 +8,9 @@ from aiohttp import web
 
 import enum
 
+
 loop = asyncio.get_event_loop
+
 
 def session_factory():
     """Create a closure to create/cache a client session.

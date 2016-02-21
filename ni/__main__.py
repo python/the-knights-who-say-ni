@@ -33,6 +33,9 @@ def handler(self, server: ServerHost, cla_records: CLAHost):
 
 if __name__ == '__main__':
     app = web.Application(loop=abc.loop())
+    async def cleanup(app):
+        await abc.session().close()
+    app.on_cleanup.append(cleanup)
     server = ServerHost()
     cla_records = CLAHost()
     app.router.add_route(*ContribHost.route,
