@@ -143,14 +143,17 @@ class Host(abc.ContribHost):
             await self.post(labels_url, [NO_CLA])
             return NO_CLA
 
-    async def remove_labels(self):
+    async def remove_labels(self) -> t.Container[str]:
         """Remove any CLA-related labels from the pull request."""
+        removed = set()
         labels_url = await self.labels_url()
-        all_labels = map(operator.itemgetter['name'],
+        all_labels = map(operator.itemgetter('name'),
                          await self.get(labels_url))
         for cla_label in (x for x in all_labels if x.startswith(LABEL_PREFIX)):
             deletion_url = await self.labels_url(cla_label)
             await self.delete(deletion_url)
+            removed.add(cla_label)
+        return frozenset(removed)
 
     async def comment(self, status: abc.Status):
         """Add an appropriate comment relating to the CLA status."""

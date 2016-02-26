@@ -38,6 +38,9 @@ class OfflineHost(github.Host):
     async def post(self, url, payload):
         assert self._network[('POST', url)] == payload
 
+    async def delete(self, url):
+        assert self._network[('DELETE', url)]
+
 
 class GitHubTests(unittest.TestCase):
 
@@ -50,7 +53,7 @@ class GitHubTests(unittest.TestCase):
         this_dir = pathlib.Path(__file__).parent
         examples = this_dir / 'examples' / 'github'
         opened_example = examples / 'opened.json'
-        with opened_example.open('r') as file:
+        with opened_example.open('r', encoding='utf-8') as file:
             cls.opened_example = json.load(file)
 
         unlabeled_example = examples / 'unlabeled.json'
@@ -58,21 +61,21 @@ class GitHubTests(unittest.TestCase):
             cls.unlabeled_example = json.load(file)
 
         sync_example = examples / 'synchronize.json'
-        with sync_example.open('r') as file:
+        with sync_example.open('r', encoding='utf-8') as file:
             cls.synchronize_example = json.load(file)
 
         commits_example = examples / 'commits.json'
-        with commits_example.open('r') as file:
+        with commits_example.open('r', encoding='utf-8') as file:
             cls.commits_example = json.load(file)
         cls.commits_url = 'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits'
 
         issues_example = examples / 'issues.json'
-        with issues_example.open('r') as file:
+        with issues_example.open('r', encoding='utf-8') as file:
             cls.issues_example = json.load(file)
         cls.issues_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
 
         labels_example = examples / 'labels.json'
-        with labels_example.open('r') as file:
+        with labels_example.open('r', encoding='utf-8') as file:
             cls.labels_example = json.load(file)
         cls.labels_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109/labels'
 
@@ -187,8 +190,14 @@ class GitHubTests(unittest.TestCase):
 
     def test_remove_labels(self):
         # Remove all CLA-related labels.
-        # XXX
-        pass
+        deletion_url = self.labels_url + '/' + parse.quote(github.CLA_OK)
+        network = {('GET', self.issues_url): self.issues_example,
+                   ('GET', self.labels_url): self.labels_example,
+                   ('DELETE', deletion_url): True}
+        contrib = OfflineHost(github.PullRequestEvent.synchronize,
+                              self.synchronize_example, network=network)
+        deleted = self.run_awaitable(contrib.remove_labels())
+        self.assertEqual(deleted, {github.CLA_OK})
 
     def test_comment(self):
         # Add a comment related to the status.
