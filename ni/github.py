@@ -184,12 +184,20 @@ class Host(abc.ContribHost):
             removed.add(cla_label)
         return frozenset(removed)
 
-    async def comment(self, status: abc.Status):
+    async def comment(self, status: abc.Status) -> str:
         """Add an appropriate comment relating to the CLA status."""
+        comments_url = self.request['pull_request']['comments_url']
         if status == abc.Status.signed:
-            return
-        # XXX not_signed
-        # XXX username_not_found
+            return None
+        elif status == abc.Status.not_signed:
+            message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY)
+        elif status == abc.Status.username_not_found:
+            message = NO_CLA_TEMPLATE.format(body=NO_USERNAME_BODY)
+        else:  # pragma: no cover
+            # Should never be reached.
+            raise TypeError("don't know how to handle {}".format(status))
+        await self.post(comments_url, {'body': message})
+        return message
 
     async def update(self, status):
         if self.event == PullRequestEvent.opened:

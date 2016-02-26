@@ -36,7 +36,8 @@ class OfflineHost(github.Host):
         return self._network[('GET', url)]
 
     async def post(self, url, payload):
-        assert self._network[('POST', url)] == payload
+        expected = self._network[('POST', url)]
+        assert expected == payload, '{!r} != {!r}'.format(payload, expected)
 
     async def delete(self, url):
         assert self._network[('DELETE', url)]
@@ -78,6 +79,8 @@ class GitHubTests(unittest.TestCase):
         with labels_example.open('r', encoding='utf-8') as file:
             cls.labels_example = json.load(file)
         cls.labels_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109/labels'
+
+        cls.comments_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109/comments'
 
     def run_awaitable(self, coroutine):
         loop = asyncio.new_event_loop()
@@ -201,8 +204,22 @@ class GitHubTests(unittest.TestCase):
 
     def test_comment(self):
         # Add a comment related to the status.
-        # XXX
-        pass
+        network = {}
+        contrib = OfflineHost(github.PullRequestEvent.opened,
+                              self.opened_example, network=network)
+        message = self.run_awaitable(contrib.comment(abc.Status.signed))
+        self.assertIsNone(message)
+        expected = {'body':
+                    github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)}
+        network[('POST', self.comments_url)] = expected
+        message = self.run_awaitable(contrib.comment(abc.Status.not_signed))
+        self.assertEqual(message, expected['body'])
+        expected['body'] = github.NO_CLA_TEMPLATE.format(
+                body=github.NO_USERNAME_BODY)
+        network[('POST', self.comments_url)] = expected
+        message = self.run_awaitable(
+                contrib.comment(abc.Status.username_not_found))
+        self.assertEqual(expected['body'], message)
 
     def test_update(self):
         # Update a PR based on the CLA status.
