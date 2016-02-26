@@ -221,17 +221,27 @@ class GitHubTests(unittest.TestCase):
                 contrib.comment(abc.Status.username_not_found))
         self.assertEqual(expected['body'], message)
 
-    def test_update(self):
-        # Update a PR based on the CLA status.
-        # Opened.
-        # XXX
-        # Unlabled.
-        network = {('GET', self.issues_url): self.issues_example}
+    def test_update_opened(self):
+        # Adding CLA status on an opened PR.
+        comment = github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)
+        network = {('GET', self.issues_url): self.issues_example,
+                   ('POST', self.labels_url): [github.NO_CLA],
+                   ('POST', self.comments_url): {'body': comment}}
+        contrib = OfflineHost(github.PullRequestEvent.opened,
+                              self.opened_example, network=network)
+        # Should not raise an exception.
+        self.run_awaitable(contrib.update(abc.Status.not_signed))
+
+    def test_update_unlabeled(self):
+        # Adding CLA status to a PR that just lost its CLA label.
+        network = {('GET', self.issues_url): self.issues_example,
+                   ('POST', self.labels_url): [github.CLA_OK]}
         contrib = OfflineHost(github.PullRequestEvent.unlabeled,
                               self.unlabeled_example, network=network)
-        labels_url = self.run_awaitable(contrib.labels_url())
-        network[('POST', labels_url)] = [github.CLA_OK]
         # Should not raise an exception.
         self.run_awaitable(contrib.update(abc.Status.signed))
-        # Synchronized.
+
+    def test_update_synchronize(self):
+        # Update the PR after it's synchronized.
         # XXX
+        pass
