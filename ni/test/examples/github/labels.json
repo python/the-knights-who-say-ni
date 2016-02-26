@@ -1,0 +1,12 @@
+[
+  {
+    "url": "https://api.github.com/repos/Microsoft/Pyjion/labels/cla-not-required",
+    "name": "cla-not-required",
+    "color": "009800"
+  },
+  {
+    "url": "https://api.github.com/repos/Microsoft/Pyjion/labels/CLA:%20%E2%98%91",
+    "name": "CLA: ☑",
+    "color": "009800"
+  }
+]

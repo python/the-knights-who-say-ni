@@ -1,8 +1,12 @@
 import enum
 import http
+from http import client
+import operator
 import typing as t
+from urllib import parse
 
 import aiohttp
+from aiohttp import hdrs
 from aiohttp import web
 
 from . import abc
@@ -77,13 +81,32 @@ class Host(abc.ContribHost):
                 payload['action'])
             raise TypeError(msg)
 
+    @staticmethod
+    def check_response(response: web.Response):
+        if response.status >= 300:
+            msg = 'unexpected response: {}'.format(response.status)
+            raise client.HTTPException(msg)
+
     async def get(self, url: str) -> JSONType:
         """Make a GET request for some JSON data.
 
         Abstracted out for easy testing w/o requiring internet access.
         """
         async with abc.session().get(url) as response:
+            self.check_response(response)
             return (await response.json())
+
+    async def post(self, url: str, payload: JSONType) -> None:
+        """Make a POST request with JSON data to a URL."""
+        encoded_json = json.dumps(payload).encode('utf-8')
+        header = {hdrs.CONTENT_TYPE: 'application/json; charset=utf-8'}
+        async with abc.session().post(url, data=encoded_json, headers=header) as response:
+            self.check_response(response)
+
+    async def delete(self, url: str) -> None:
+        """Make a DELETE request to a URL."""
+        async with abc.session().delete(url) as response:
+            self.check_response(response)
 
     async def usernames(self):
         """Return an iterable with all of the contributors' usernames."""
@@ -98,6 +121,65 @@ class Host(abc.ContribHost):
             logins.add(commit['committer']['login'])
         return frozenset(logins)
 
+    async def labels_url(self, label=None):
+        """Construct the URL to the label."""
+        if not hasattr(self, '_labels_url'):
+            issue_url = self.request['pull_request']['issue_url']
+            issue_data = await self.get(issue_url)
+            self._labels_url = issue_data['labels_url']
+        quoted_label = ''
+        if label is not None:
+            quoted_label = '/' + parse.quote(label)
+        mapping = {'/name': quoted_label}
+        return self._labels_url.format_map(mapping)
+
+    async def set_label(self, status: abc.Status) -> str:
+        """Set the label on the pull request based on the status of the CLA."""
+        labels_url = await self.labels_url()
+        if status == abc.Status.signed:
+            await self.post(labels_url, [CLA_OK])
+            return CLA_OK
+        else:
+            await self.post(labels_url, [NO_CLA])
+            return NO_CLA
+
+    async def remove_labels(self):
+        """Remove any CLA-related labels from the pull request."""
+        labels_url = await self.labels_url()
+        all_labels = map(operator.itemgetter['name'],
+                         await self.get(labels_url))
+        for cla_label in (x for x in all_labels if x.startswith(LABEL_PREFIX)):
+            deletion_url = await self.labels_url(cla_label)
+            await self.delete(deletion_url)
+
+    async def comment(self, status: abc.Status):
+        """Add an appropriate comment relating to the CLA status."""
+        if status == abc.Status.signed:
+            return
+        # XXX not_signed
+        # XXX username_not_found
+
     async def update(self, status):
-        # XXX
-        return web.Response(status=501)    # pragma: no cover
+        if self.event == PullRequestEvent.opened:
+            await self.set_label(status)
+            await self.comment(status)
+        elif self.event == PullRequestEvent.unlabeled:
+            # The assumption is that a PR will almost always go from no CLA to
+            # being cleared, so don't bug the user with what will probably
+            # amount to a repeated message about lacking a CLA.
+            await self.set_label(status)
+        elif self.event == PullRequestEvent.synchronize:
+            current_label = await self.current_label()
+            if status == abc.Status.signed:
+                if current_label != CLA_OK:
+                    await self.remove_labels()
+            elif current_label != NO_CLA:
+                    await self.remove_labels()
+                    # Since there is a chance a new person was added to a PR
+                    # which caused the change in status, a comment on how to
+                    # resolve the CLA issue is probably called for.
+                    await self.comment(status)
+        else:  # pragma: no cover
+            # Should never be reached.
+            msg = 'do not know how to update a PR for {}'.format(self.event)
+            raise RunimeError(msg)

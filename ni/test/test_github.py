@@ -3,6 +3,7 @@ import copy
 import json
 import pathlib
 import unittest
+from urllib import parse
 
 from aiohttp import hdrs, web
 
@@ -32,7 +33,10 @@ class OfflineHost(github.Host):
         self._network = network
 
     async def get(self, url):
-        return self._network[url]
+        return self._network[('GET', url)]
+
+    async def post(self, url, payload):
+        assert self._network[('POST', url)] == payload
 
 
 class GitHubTests(unittest.TestCase):
@@ -60,6 +64,17 @@ class GitHubTests(unittest.TestCase):
         commits_example = examples / 'commits.json'
         with commits_example.open('r') as file:
             cls.commits_example = json.load(file)
+        cls.commits_url = 'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits'
+
+        issues_example = examples / 'issues.json'
+        with issues_example.open('r') as file:
+            cls.issues_example = json.load(file)
+        cls.issues_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
+
+        labels_example = examples / 'labels.json'
+        with labels_example.open('r') as file:
+            cls.labels_example = json.load(file)
+        cls.labels_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109/labels'
 
     def run_awaitable(self, coroutine):
         loop = asyncio.new_event_loop()
@@ -119,14 +134,78 @@ class GitHubTests(unittest.TestCase):
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
 
+    def test_check_response(self):
+        # Throw a fit for anything that isn't a 2XX response.
+        github.Host.check_response(web.Response(status=202))
+        with self.assertRaises(Exception):
+            github.Host.check_response(web.Response(status=301))
+        with self.assertRaises(Exception):
+            github.Host.check_response(web.Response(status=404))
+        with self.assertRaises(Exception):
+            github.Host.check_response(web.Response(status=502))
+
     def test_usernames(self):
         # Should grab logins from the PR creator of the PR, and both the author
         # and committer for every commit in the PR.
-        network = {'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits':
-                   self.commits_example}
+        what = ('GET', self.commits_url)
+        network = {what: self.commits_example}
         contrib = OfflineHost(github.PullRequestEvent.opened,
                               self.opened_example, network=network)
         got = self.run_awaitable(contrib.usernames())
         want = {'brettcannon', 'rbtcollins-author', 'rbtcollins-committer',
                 'dstufft-author', 'dstufft-committer'}
         self.assertEqual(got, frozenset(want))
+
+    def test_labels_url(self):
+        # Get the proper labels URL for a PR.
+        network = {('GET', self.issues_url): self.issues_example}
+        contrib = OfflineHost(github.PullRequestEvent.opened,
+                              self.opened_example, network=network)
+        got = self.run_awaitable(contrib.labels_url())
+        want = self.labels_url.format_map({'/name': ''})
+        self.assertEqual(got, want)
+
+        got = self.run_awaitable(contrib.labels_url(github.CLA_OK))
+        label = parse.quote(github.CLA_OK)
+        want = '{}/{}'.format(self.labels_url, label)
+        self.assertEqual(got, want)
+
+    def test_set_label(self):
+        # If the status is "signed" then add the positive label, else use the
+        # negative one.
+        network = {('GET', self.issues_url): self.issues_example,
+                   ('POST', self.labels_url): [github.CLA_OK]}
+        contrib = OfflineHost(github.PullRequestEvent.opened,
+                              self.opened_example, network=network)
+        label = self.run_awaitable(contrib.set_label(abc.Status.signed))
+        self.assertEqual(label, github.CLA_OK)
+        network[('POST', self.labels_url)] = [github.NO_CLA]
+        label = self.run_awaitable(contrib.set_label(abc.Status.not_signed))
+        self.assertEqual(label, github.NO_CLA)
+        self.run_awaitable(contrib.set_label(abc.Status.username_not_found))
+        self.assertEqual(label, github.NO_CLA)
+
+    def test_remove_labels(self):
+        # Remove all CLA-related labels.
+        # XXX
+        pass
+
+    def test_comment(self):
+        # Add a comment related to the status.
+        # XXX
+        pass
+
+    def test_update(self):
+        # Update a PR based on the CLA status.
+        # Opened.
+        # XXX
+        # Unlabled.
+        network = {('GET', self.issues_url): self.issues_example}
+        contrib = OfflineHost(github.PullRequestEvent.unlabeled,
+                              self.unlabeled_example, network=network)
+        labels_url = self.run_awaitable(contrib.labels_url())
+        network[('POST', labels_url)] = [github.CLA_OK]
+        # Should not raise an exception.
+        self.run_awaitable(contrib.update(abc.Status.signed))
+        # Synchronized.
+        # XXX

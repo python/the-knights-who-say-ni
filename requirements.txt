@@ -1,3 +1,2 @@
-# XXX Peg to specific versions once 1.0.0 is reached.
-# Heroku suggested pegging version dependencies 2 levels deep.
+# XXX Peg to specific versions once 1.0.0 is reached in a requirements.lock file.
 aiohttp

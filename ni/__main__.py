@@ -19,7 +19,7 @@ def handler(self, server: ServerHost, cla_records: CLAHost):
             cla_status = await cla_records.check(usernames)  # XXX blocked on b.p.o.
             # With a work queue, one could make the updating of the
             # contribution a work item and return an HTTP 202 response.
-            await contribution.update(cla_status)  # XXX not implemented
+            await contribution.update(cla_status)
             return web.Response(status=http.HTTPStatus.NO_CONTENT)
         except abc.ResponseExit as exc:
             return exc.response
