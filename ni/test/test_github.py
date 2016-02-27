@@ -87,6 +87,10 @@ class GitHubTests(unittest.TestCase):
         self.addCleanup(loop.close)
         return loop.run_until_complete(coroutine)
 
+    def noException(self, coroutine):
+        # Shouldn't raise any exception.
+        self.run_awaitable(coroutine)
+
     def test_bad_content_type(self):
         # Only accept 'application/json'.
         # https://developer.github.com/webhooks/creating/#content-type
@@ -248,8 +252,7 @@ class GitHubTests(unittest.TestCase):
                    ('POST', self.comments_url): {'body': comment}}
         contrib = OfflineHost(github.PullRequestEvent.opened,
                               self.opened_example, network=network)
-        # Should not raise an exception.
-        self.run_awaitable(contrib.update(abc.Status.not_signed))
+        self.noException(contrib.update(abc.Status.not_signed))
 
     def test_update_unlabeled(self):
         # Adding CLA status to a PR that just lost its CLA label.
@@ -257,26 +260,38 @@ class GitHubTests(unittest.TestCase):
                    ('POST', self.labels_url): [github.CLA_OK]}
         contrib = OfflineHost(github.PullRequestEvent.unlabeled,
                               self.unlabeled_example, network=network)
-        # Should not raise an exception.
-        self.run_awaitable(contrib.update(abc.Status.signed))
+        self.noException(contrib.update(abc.Status.signed))
 
     def test_update_synchronize(self):
         # Update the PR after it's synchronized.
-        network = {('GET', self.issues_url): self.issues_example,
-                   ('GET', self.labels_url): self.labels_example}
-        # CLA signed and already labeled as such.
+        network = {('GET', self.issues_url): self.issues_example}
         contrib = OfflineHost(github.PullRequestEvent.synchronize,
                               self.synchronize_example, network=network)
-        # Should not raise an exception.
-        self.run_awaitable(contrib.update(abc.Status.signed))
+        # CLA signed and already labeled as such.
+        network[('GET', self.labels_url)] = self.labels_example
+        self.noException(contrib.update(abc.Status.signed))
         # CLA signed, but not labeled as such.
-        # XXX
+        network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
+        deletion_url = self.run_awaitable(contrib.labels_url(github.NO_CLA))
+        network[('DELETE', deletion_url)] = [github.NO_CLA]
+        self.noException(contrib.update(abc.Status.signed))
         # CLA not signed and already labeled as such.
-        # XXX
+        network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
+        self.noException(contrib.update(abc.Status.not_signed))
         # CLA not signed, but currently labeled as such.
-        # XXX
-        # No GitHub username, but already labeled as no CLA>
-        # XXX
+        network[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
+        deletion_url = self.run_awaitable(contrib.labels_url(github.CLA_OK))
+        network[('DELETE', deletion_url)] = [github.CLA_OK]
+        comment = github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)
+        network[('POST', self.comments_url)] = {'body': comment}
+        self.noException(contrib.update(abc.Status.not_signed))
+        # No GitHub username, but already labeled as no CLA.
+        network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
+        self.noException(contrib.update(abc.Status.username_not_found))
         # No GitHub username, but labeled as signed.
-        # XXX
-        pass
+        network[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
+        deletion_url = self.run_awaitable(contrib.labels_url(github.CLA_OK))
+        network[('DELETE', deletion_url)] = [github.CLA_OK]
+        comment = github.NO_CLA_TEMPLATE.format(body=github.NO_USERNAME_BODY)
+        network[('POST', self.comments_url)] = {'body': comment}
+        self.noException(contrib.update(abc.Status.username_not_found))
