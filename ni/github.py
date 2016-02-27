@@ -162,6 +162,15 @@ class Host(abc.ContribHost):
         mapping = {'/name': quoted_label}
         return self._labels_url.format_map(mapping)
 
+    async def current_label(self) -> t.Optional[str]:
+        """Return the current CLA-related label."""
+        labels_url = await self.labels_url()
+        all_labels = map(operator.itemgetter('name'),
+                         await self.get(labels_url))
+        cla_labels = (x for x in all_labels if x.startswith(LABEL_PREFIX))
+        cla_labels = sorted(cla_labels)
+        return cla_labels[0] if len(cla_labels) > 0 else None
+
     async def set_label(self, status: abc.Status) -> str:
         """Set the label on the pull request based on the status of the CLA."""
         labels_url = await self.labels_url()
@@ -172,17 +181,14 @@ class Host(abc.ContribHost):
             await self.post(labels_url, [NO_CLA])
             return NO_CLA
 
-    async def remove_labels(self) -> t.Container[str]:
+    async def remove_label(self) -> t.Optional[str]:
         """Remove any CLA-related labels from the pull request."""
-        removed = set()
-        labels_url = await self.labels_url()
-        all_labels = map(operator.itemgetter('name'),
-                         await self.get(labels_url))
-        for cla_label in (x for x in all_labels if x.startswith(LABEL_PREFIX)):
-            deletion_url = await self.labels_url(cla_label)
-            await self.delete(deletion_url)
-            removed.add(cla_label)
-        return frozenset(removed)
+        cla_label = await self.current_label()
+        if cla_label is None:
+            return None
+        deletion_url = await self.labels_url(cla_label)
+        await self.delete(deletion_url)
+        return cla_label
 
     async def comment(self, status: abc.Status) -> str:
         """Add an appropriate comment relating to the CLA status."""
@@ -212,9 +218,9 @@ class Host(abc.ContribHost):
             current_label = await self.current_label()
             if status == abc.Status.signed:
                 if current_label != CLA_OK:
-                    await self.remove_labels()
+                    await self.remove_label()
             elif current_label != NO_CLA:
-                    await self.remove_labels()
+                    await self.remove_label()
                     # Since there is a chance a new person was added to a PR
                     # which caused the change in status, a comment on how to
                     # resolve the CLA issue is probably called for.

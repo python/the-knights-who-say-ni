@@ -176,6 +176,25 @@ class GitHubTests(unittest.TestCase):
         want = '{}/{}'.format(self.labels_url, label)
         self.assertEqual(got, want)
 
+    def test_current_label(self):
+        # Test getting the current CLA label (if any).
+        network = {('GET', self.issues_url): self.issues_example}
+        contrib = OfflineHost(github.PullRequestEvent.synchronize,
+                              self.synchronize_example, network=network)
+        # No label set.
+        network[('GET', self.labels_url)] = []
+        label = self.run_awaitable(contrib.current_label())
+        self.assertIsNone(label)
+        # One CLA label set.
+        network[('GET', self.labels_url)] = self.labels_example
+        label = self.run_awaitable(contrib.current_label())
+        self.assertEqual(label, github.CLA_OK)
+        # Two CLA labels set (error case).
+        network[('GET', self.labels_url)] = [{'name': github.CLA_OK},
+                                             {'name': github.NO_CLA}]
+        label = self.run_awaitable(contrib.current_label())
+        self.assertEqual(label, github.NO_CLA)
+
     def test_set_label(self):
         # If the status is "signed" then add the positive label, else use the
         # negative one.
@@ -191,7 +210,7 @@ class GitHubTests(unittest.TestCase):
         self.run_awaitable(contrib.set_label(abc.Status.username_not_found))
         self.assertEqual(label, github.NO_CLA)
 
-    def test_remove_labels(self):
+    def test_remove_label(self):
         # Remove all CLA-related labels.
         deletion_url = self.labels_url + '/' + parse.quote(github.CLA_OK)
         network = {('GET', self.issues_url): self.issues_example,
@@ -199,8 +218,8 @@ class GitHubTests(unittest.TestCase):
                    ('DELETE', deletion_url): True}
         contrib = OfflineHost(github.PullRequestEvent.synchronize,
                               self.synchronize_example, network=network)
-        deleted = self.run_awaitable(contrib.remove_labels())
-        self.assertEqual(deleted, {github.CLA_OK})
+        deleted = self.run_awaitable(contrib.remove_label())
+        self.assertEqual(deleted, github.CLA_OK)
 
     def test_comment(self):
         # Add a comment related to the status.
@@ -243,5 +262,21 @@ class GitHubTests(unittest.TestCase):
 
     def test_update_synchronize(self):
         # Update the PR after it's synchronized.
+        network = {('GET', self.issues_url): self.issues_example,
+                   ('GET', self.labels_url): self.labels_example}
+        # CLA signed and already labeled as such.
+        contrib = OfflineHost(github.PullRequestEvent.synchronize,
+                              self.synchronize_example, network=network)
+        # Should not raise an exception.
+        self.run_awaitable(contrib.update(abc.Status.signed))
+        # CLA signed, but not labeled as such.
+        # XXX
+        # CLA not signed and already labeled as such.
+        # XXX
+        # CLA not signed, but currently labeled as such.
+        # XXX
+        # No GitHub username, but already labeled as no CLA>
+        # XXX
+        # No GitHub username, but labeled as signed.
         # XXX
         pass
