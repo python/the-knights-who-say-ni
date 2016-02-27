@@ -224,6 +224,9 @@ class GitHubTests(unittest.TestCase):
                               self.synchronize_example, network=network)
         deleted = self.run_awaitable(contrib.remove_label())
         self.assertEqual(deleted, github.CLA_OK)
+        network[('GET', self.labels_url)] = []
+        deleted = self.run_awaitable(contrib.remove_label())
+        self.assertIsNone(deleted)
 
     def test_comment(self):
         # Add a comment related to the status.
