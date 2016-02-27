@@ -43,7 +43,28 @@ class OfflineHost(github.Host):
         assert self._network[('DELETE', url)]
 
 
-class GitHubTests(unittest.TestCase):
+def example(file_name):
+    this_dir = pathlib.Path(__file__).parent
+    examples = this_dir / 'examples' / 'github'
+    example = examples / file_name
+    with example.open('r', encoding='utf-8') as file:
+        return json.load(file)
+
+
+class TestCase(unittest.TestCase):
+
+    def run_awaitable(self, coroutine, *, loop=None):
+        if loop is None:
+            loop = asyncio.new_event_loop()
+            self.addCleanup(loop.close)
+        return loop.run_until_complete(coroutine)
+
+    def noException(self, coroutine):
+        # Shouldn't raise any exception.
+        self.run_awaitable(coroutine)
+
+
+class GitHubTests(TestCase):
 
     acceptable = {github.PullRequestEvent.opened,
                   github.PullRequestEvent.unlabeled,
@@ -51,45 +72,16 @@ class GitHubTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        this_dir = pathlib.Path(__file__).parent
-        examples = this_dir / 'examples' / 'github'
-        opened_example = examples / 'opened.json'
-        with opened_example.open('r', encoding='utf-8') as file:
-            cls.opened_example = json.load(file)
-
-        unlabeled_example = examples / 'unlabeled.json'
-        with unlabeled_example.open('r') as file:
-            cls.unlabeled_example = json.load(file)
-
-        sync_example = examples / 'synchronize.json'
-        with sync_example.open('r', encoding='utf-8') as file:
-            cls.synchronize_example = json.load(file)
-
-        commits_example = examples / 'commits.json'
-        with commits_example.open('r', encoding='utf-8') as file:
-            cls.commits_example = json.load(file)
+        cls.opened_example = example('opened.json')
+        cls.unlabeled_example = example('unlabeled.json')
+        cls.synchronize_example = example('synchronize.json')
+        cls.commits_example = example('commits.json')
         cls.commits_url = 'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits'
-
-        issues_example = examples / 'issues.json'
-        with issues_example.open('r', encoding='utf-8') as file:
-            cls.issues_example = json.load(file)
+        cls.issues_example = example('issues.json')
         cls.issues_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
-
-        labels_example = examples / 'labels.json'
-        with labels_example.open('r', encoding='utf-8') as file:
-            cls.labels_example = json.load(file)
+        cls.labels_example = example('labels.json')
         cls.labels_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109/labels'
-
         cls.comments_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109/comments'
-
-    def run_awaitable(self, coroutine):
-        loop = asyncio.new_event_loop()
-        self.addCleanup(loop.close)
-        return loop.run_until_complete(coroutine)
-
-    def noException(self, coroutine):
-        # Shouldn't raise any exception.
-        self.run_awaitable(coroutine)
 
     def test_bad_content_type(self):
         # Only accept 'application/json'.
@@ -298,3 +290,19 @@ class GitHubTests(unittest.TestCase):
         comment = github.NO_CLA_TEMPLATE.format(body=github.NO_USERNAME_BODY)
         network[('POST', self.comments_url)] = {'body': comment}
         self.noException(contrib.update(abc.Status.username_not_found))
+
+
+class NetworkingTests(TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        session = abc.session()
+        session.close()
+        abc.session = abc._session_factory()
+
+    def test_get(self):
+        contrib = github.Host(github.PullRequestEvent.opened, {})
+        url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
+        response = self.run_awaitable(contrib.get(url), loop=abc.loop())
+        self.assertIn('url', response)
+        self.assertEqual(response['url'], url)

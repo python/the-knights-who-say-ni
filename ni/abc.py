@@ -12,7 +12,7 @@ import enum
 loop = asyncio.get_event_loop
 
 
-def session_factory():
+def _session_factory():
     """Create a closure to create/cache a client session.
 
     A single session should be used for the life of the server, but creating it
@@ -28,8 +28,7 @@ def session_factory():
 
     return session
 
-session = session_factory()
-del session_factory
+session = _session_factory()
 
 
 class ResponseExit(Exception):
