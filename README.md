@@ -51,17 +51,12 @@ project is to try and
 **abstract the hosting platforms** so that when the next change to
 the Python project's relevant hosting platform occurs it will not
 require a full rewrite of this project to get CLA enforcement
-working.
-
-Being a self-contained server app of low complexity, another design
-goal is for this project to act as a
-**stellar example of a Python server project** for the latest release
-of Python.
+working again.
 
 Lastly, the master branch of this project will always strive to be
-**stable and be properly tested**. Because there are legal
+**stable and properly tested**. Because there are legal
 ramifications if this project is unable to perform its duties, it is
-imperative that it function properly. (This design goal
+imperative that it always function properly. (This design goal
 will not be enforced until the project is considered ready for
 deployment.)
 
@@ -83,52 +78,6 @@ While this project is, strictly speaking, geared towards the needs of
 the Python project, the abstraction design goal should make it
 relatively straight-forward to fork this project and to modify it as
 necessary for your own needs.
-
-## Control flow
-The key piece of legal information one must know is that the instant
-code is provided to the Python project, it is considered contributed.
-That means it is critical to prevent accepting that contribution if
-the contributor has not signed the CLA. What this means is that
-once a person has signed the CLA, their contribution is considered in
-the clear and thus does not need to be checked again to see if
-they have rescinded their CLA (if that does happen then only future
-contributions which they have not yet made will not be covered by
-their original CLA).
-
-All of this leads to the following pseuodcode under GitHub:
-
-```Python
-if pull_request.is_opened:
-    usernames = pull_request.committers
-    if signed_cla(pull_request, username, new=True):  # Could cache the result.
-        pull_request.add_label(OK)
-    else:
-        pull_request.add_label(no_CLA)
-        # "No CLA" can either be from no GitHub account found on
-        # bugs.python.org or because they have not signed the CLA.
-        pull_request.add_comment(why_no_CLA)
-elif pull_request.label_removed:
-    if pull_request.label_removed in CLA_labels:
-    # Removing a CLA label triggers the bot to check for CLAs again.
-    usernames = pull_request.committers
-    if signed_cla(username):
-        pull_request.add_label(OK)
-    else:
-        # The assumption is that if the check is being triggered
-        # again and there is no CLA then the pull request most likely
-        # started off w/o a CLA and thus got the message to begin
-        # with.
-        pull_request.add_label(no_CLA)
-elif pull_request.synchronized:  # Code updated.
-    usernames = pull_request.committers
-    signed_ok = signed_cla(pull_request, usernames)  # Checks cache.
-    old_cla_label = pull_request.cla_label()
-    if signed_ok and old_cla_label == no_CLA:
-        # The unlabeling will trigger the bot for the label removal.
-        pull_request.remove_bad_labels()
-    elif not signed_ok and old_cla_label == CLA_OK:
-        pull_request.remove_good_labels()
-```
 
 ## About the project's name
 ['The Knights Who Say "Ni!"'](https://www.youtube.com/watch?v=zIV4poUZAQo)
