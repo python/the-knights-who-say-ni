@@ -127,8 +127,9 @@ class Host(abc.ContribHost):
 
     async def post(self, url: str, payload: JSONType) -> None:
         """Make a POST request with JSON data to a URL."""
-        encoded_json = json.dumps(payload).encode('utf-8')
-        header = {hdrs.CONTENT_TYPE: 'application/json; charset=utf-8'}
+        encoding = 'utf-8'
+        encoded_json = json.dumps(payload).encode(encoding)
+        header = {hdrs.CONTENT_TYPE: 'application/json; charset=' + encoding}
         async with abc.session().post(url, data=encoded_json, headers=header) as response:
             self.check_response(response)
 
