@@ -3,6 +3,7 @@ import copy
 import json
 import pathlib
 import unittest
+from unittest import mock
 from urllib import parse
 
 from aiohttp import hdrs, web
@@ -267,6 +268,33 @@ class GitHubTests(util.TestCase):
         self.noException(contrib.update(abc.Status.username_not_found))
 
 
+class FakeSession:
+
+    def __init__(self, response=None):
+        if response is None:
+            response = web.Response(status=200)
+        self._response = response
+
+    def __call__(self):
+        return self
+
+    async def __aenter__(self):
+        return self._response
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+    def post(self, url, data, headers):
+        self.url = url
+        self.data = data
+        self.headers = headers
+        return self
+
+    def delete(self, url):
+        self.url = url
+        return self
+
+
 class NetworkingTests(util.TestCase):
 
     @classmethod
@@ -282,3 +310,25 @@ class NetworkingTests(util.TestCase):
         response = self.run_awaitable(contrib.get(url), loop=abc.loop())
         self.assertIn('url', response)
         self.assertEqual(response['url'], url)
+
+    def test_post(self):
+        contrib = github.Host(None, None)
+        data = {'hello': 'world'}
+        url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
+        fake_session = FakeSession()
+        with mock.patch('ni.abc.session', fake_session):
+            self.noException(contrib.post(url, data))
+        self.assertEqual(fake_session.url, url)
+        json_string = fake_session.data.decode('utf-8')
+        self.assertEqual(json.loads(json_string), data)
+        content_type = fake_session.headers[hdrs.CONTENT_TYPE]
+        self.assertTrue(content_type.startswith('application/json'))
+
+    def test_delete(self):
+        contrib = github.Host(None, None)
+        data = {'hello': 'world'}
+        url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
+        fake_session = FakeSession()
+        with mock.patch('ni.abc.session', fake_session):
+            self.noException(contrib.delete(url))
+        self.assertEqual(fake_session.url, url)

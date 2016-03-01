@@ -1,6 +1,7 @@
 import enum
 import http
 from http import client
+import json
 import operator
 import typing as t
 from urllib import parse
@@ -111,7 +112,7 @@ class Host(abc.ContribHost):
             raise TypeError(msg)
 
     @staticmethod
-    def check_response(response: web.Response):
+    def check_response(response: web.Response) -> None:
         if response.status >= 300:
             msg = 'unexpected response: {}'.format(response.status)
             raise client.HTTPException(msg)
@@ -130,7 +131,9 @@ class Host(abc.ContribHost):
         encoding = 'utf-8'
         encoded_json = json.dumps(payload).encode(encoding)
         header = {hdrs.CONTENT_TYPE: 'application/json; charset=' + encoding}
-        async with abc.session().post(url, data=encoded_json, headers=header) as response:
+        post_manager = abc.session().post(url, data=encoded_json,
+                                          headers=header)
+        async with post_manager as response:
             self.check_response(response)
 
     async def delete(self, url: str) -> None:
