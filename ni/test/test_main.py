@@ -1,4 +1,102 @@
-from .. import __main__
+import http
+import unittest
+from unittest import mock
 
-# XXX e2e tests with faked Request objects.
-#     Will need to manage mocking/faking out mutating network calls.
+from .. import __main__
+from .. import abc
+from . import util
+
+
+class FakeServerHost(abc.ServerHost):
+
+    def port(self):
+        """Specify the port to bind the listening socket to."""
+        return 1234
+
+    def log(self, exc: Exception):
+        """Log the exception."""
+        self.logged = exc
+
+
+class FakeCLAHost(abc.CLAHost):
+
+    """Abstract base class for the CLA records platform."""
+
+    def __init__(self, status=None):
+        self._status = status
+
+    async def check(self, usernames):
+        """Check if all of the specified usernames have signed the CLA."""
+        self.usernames = usernames
+        return self._status
+
+
+class FakeContribHost(abc.ContribHost):
+
+    """Abstract base class for the contribution/pull request platform."""
+
+    def __init__(self, usernames=[], raise_=None):
+        self._usernames = usernames
+        self._raise = raise_
+
+    @property
+    def route(self):
+        return '*', '/'  # pragma: no cover
+
+    async def process(self, request):
+        """Process a request into a contribution."""
+        if self._raise is not None:
+            raise self._raise
+        return self
+
+    async def usernames(self):
+        """Return an iterable of all the contributors' usernames."""
+        return self._usernames
+
+    async def update(self, status):
+        """Update the contribution with the status of CLA coverage."""
+        self.status = status
+
+
+class HandlerTest(util.TestCase):
+
+    def test_response(self):
+        # Success case.
+        usernames = ['brettcannon']
+        status = abc.Status.signed
+        server = FakeServerHost()
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 204)
+        self.assertEqual(cla.usernames, usernames)
+        self.assertEqual(contrib.status, status)
+
+    def test_ResponseExit(self):
+        # Test when ResponseExit is raised.
+        server = FakeServerHost()
+        cla = FakeCLAHost()
+        text = 'test'
+        response_exit = abc.ResponseExit(status=http.HTTPStatus.FOUND,
+                                         text=text)
+        contrib = FakeContribHost(raise_=response_exit)
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(server, cla)
+            response = self.run_awaitable(responder(util.FakeRequest()))
+        self.assertEqual(response.status, http.HTTPStatus.FOUND)
+        self.assertEqual(response.text, text)
+
+    def test_unexpected_exception(self):
+        # Test when a non-ResponseExit exception is raised.
+        server = FakeServerHost()
+        cla = FakeCLAHost()
+        exc = Exception('test')
+        contrib = FakeContribHost(raise_=exc)
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(server, cla)
+            response = self.run_awaitable(responder(util.FakeRequest()))
+        self.assertEqual(response.status, http.HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.assertEqual(server.logged, exc)

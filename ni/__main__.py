@@ -1,4 +1,6 @@
 """Implement a server to check if a contribution is covered by a CLA(s)."""
+import http
+
 import aiohttp
 from aiohttp import web
 
@@ -9,12 +11,12 @@ from . import ServerHost
 
 
 # XXX untested
-def handler(self, server: ServerHost, cla_records: CLAHost):
+def handler(server: ServerHost, cla_records: CLAHost):
     """Create a closure to handle requests from the contribution host."""
     async def respond(request: web.Request) -> web.StreamResponse:
         """Handle a webhook trigger from the contribution host."""
         try:
-            contribution = ContribHost.process(request)
+            contribution = await ContribHost.process(request)
             usernames = await contribution.usernames()
             cla_status = await cla_records.check(usernames)  # XXX blocked on b.p.o.
             # With a work queue, one could make the updating of the
@@ -26,7 +28,7 @@ def handler(self, server: ServerHost, cla_records: CLAHost):
         except Exception as exc:
             server.log(exc)
             return web.Response(
-                    status=http.HTTPStatus.INTERNAL_SERVER_ERROR.value)
+                    status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return respond
 

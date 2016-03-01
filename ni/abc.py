@@ -84,7 +84,7 @@ class ContribHost(abc.ABC):
         return []  # pragma: no cover
 
     @abc.abstractmethod
-    async def update(self, status: Status):
+    async def update(self, status: Status) -> None:
         """Update the contribution with the status of CLA coverage."""
 
 

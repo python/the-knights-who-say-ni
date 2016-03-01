@@ -9,19 +9,7 @@ from aiohttp import hdrs, web
 
 from .. import abc
 from .. import github
-
-
-# Inheriting from web.Request is bad as the docs explicitly say not to create
-# instances manually. To work around that this faked request is provided.
-# http://aiohttp.readthedocs.org/en/stable/web_reference.html#aiohttp.web.Request
-class FakeRequest:
-
-    def __init__(self, payload={}, content_type='application/json'):
-        self.content_type = content_type
-        self._payload = payload
-
-    async def json(self):
-        return self._payload
+from . import util
 
 
 class OfflineHost(github.Host):
@@ -51,20 +39,7 @@ def example(file_name):
         return json.load(file)
 
 
-class TestCase(unittest.TestCase):
-
-    def run_awaitable(self, coroutine, *, loop=None):
-        if loop is None:
-            loop = asyncio.new_event_loop()
-            self.addCleanup(loop.close)
-        return loop.run_until_complete(coroutine)
-
-    def noException(self, coroutine):
-        # Shouldn't raise any exception.
-        self.run_awaitable(coroutine)
-
-
-class GitHubTests(TestCase):
+class GitHubTests(util.TestCase):
 
     acceptable = {github.PullRequestEvent.opened,
                   github.PullRequestEvent.unlabeled,
@@ -86,7 +61,7 @@ class GitHubTests(TestCase):
     def test_bad_content_type(self):
         # Only accept 'application/json'.
         # https://developer.github.com/webhooks/creating/#content-type
-        request = FakeRequest(content_type='application/x-www-form-urlencoded')
+        request = util.FakeRequest(content_type='application/x-www-form-urlencoded')
         with self.assertRaises(abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(request))
         self.assertEqual(cm.exception.response.status, 415)
@@ -96,7 +71,7 @@ class GitHubTests(TestCase):
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
         with self.assertRaises(abc.ResponseExit) as cm:
-            self.run_awaitable(github.Host.process(FakeRequest(payload)))
+            self.run_awaitable(github.Host.process(util.FakeRequest(payload)))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_skipping(self):
@@ -106,13 +81,13 @@ class GitHubTests(TestCase):
             if event in self.acceptable:
                 continue
             payload = {'action': event.value}
-            request = FakeRequest(payload)
+            request = util.FakeRequest(payload)
             with self.assertRaises(abc.ResponseExit) as cm:
                 self.run_awaitable(github.Host.process(request))
             self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_opened(self):
-        request = FakeRequest(self.opened_example)
+        request = util.FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
@@ -120,19 +95,19 @@ class GitHubTests(TestCase):
         # Test a CLA label being removed.
         unlabeled_example_CLA = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_CLA['label']['name'] = github.CLA_OK
-        request = FakeRequest(unlabeled_example_CLA)
+        request = util.FakeRequest(unlabeled_example_CLA)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
         # Test a non-CLA label being removed.
         unlabeled_example_other = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_other['label']['name'] = 'missing something or other'
-        request = FakeRequest(unlabeled_example_other)
+        request = util.FakeRequest(unlabeled_example_other)
         with self.assertRaises(abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(request))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_synchronize(self):
-        request = FakeRequest(self.synchronize_example)
+        request = util.FakeRequest(self.synchronize_example)
         result = self.run_awaitable(github.Host.process(request))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
 
@@ -292,7 +267,7 @@ class GitHubTests(TestCase):
         self.noException(contrib.update(abc.Status.username_not_found))
 
 
-class NetworkingTests(TestCase):
+class NetworkingTests(util.TestCase):
 
     @classmethod
     def tearDownClass(cls):
@@ -301,6 +276,7 @@ class NetworkingTests(TestCase):
         abc.session = abc._session_factory()
 
     def test_get(self):
+        # Test a GET request to a live GitHub API URL.
         contrib = github.Host(github.PullRequestEvent.opened, {})
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         response = self.run_awaitable(contrib.get(url), loop=abc.loop())
