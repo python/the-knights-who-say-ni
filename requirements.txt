@@ -1,2 +1,2 @@
-# XXX Peg to specific versions once 1.0.0 is reached in a requirements.lock file.
-aiohttp
+aiohttp==0.21.2
+chardet==2.3.0

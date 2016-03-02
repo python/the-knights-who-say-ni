@@ -4,6 +4,12 @@
 Work done surrounding this project is governed by the
 [PSF Code of Conduct](https://www.python.org/psf/codeofconduct/).
 
+## Dependencies
+The `requirements.txt` file is frozen to the currently tested
+versions of `requirements.base`. To update, create a venv,
+run `python3 -m pip install -r requirements.base`, run all tests,
+and then update `requirements.txt`.
+
 ## Testing
 ### Running tests
 On a UNIX-based OS, simply run `test.sh`. On Windows, run
