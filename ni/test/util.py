@@ -2,10 +2,14 @@ import asyncio
 import unittest
 
 
-# Inheriting from web.Request is bad as the docs explicitly say not to create
-# instances manually. To work around that this faked request is provided.
-# http://aiohttp.readthedocs.org/en/stable/web_reference.html#aiohttp.web.Request
 class FakeRequest:
+
+    """Provide a base class for faking requests.
+
+    Inheriting from web.Request is bad as the docs explicitly say not to create
+    instances manually. To work around that this faked request is provided.
+    http://aiohttp.readthedocs.org/en/stable/web_reference.html#aiohttp.web.Request
+    """
 
     def __init__(self, payload={}, content_type='application/json'):
         self.content_type = content_type
