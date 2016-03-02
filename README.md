@@ -56,9 +56,7 @@ working again.
 Lastly, the master branch of this project will always strive to be
 **stable and properly tested**. Because there are legal
 ramifications if this project is unable to perform its duties, it is
-imperative that it always function properly. (This design goal
-will not be enforced until the project is considered ready for
-deployment.)
+imperative that it always function properly.
 
 ### Why wasn't some pre-existing CLA bot used?
 There are several other CLA enforcement projects and services
