@@ -1,7 +1,6 @@
 """Implement a server to check if a contribution is covered by a CLA(s)."""
 import http
 
-import aiohttp
 from aiohttp import web
 
 from . import abc
@@ -10,10 +9,9 @@ from . import ContribHost
 from . import ServerHost
 
 
-# XXX untested
-def handler(server: ServerHost, cla_records: CLAHost):
+def handler(server, cla_records):
     """Create a closure to handle requests from the contribution host."""
-    async def respond(request: web.Request) -> web.StreamResponse:
+    async def respond(request):
         """Handle a webhook trigger from the contribution host."""
         try:
             contribution = await ContribHost.process(request)

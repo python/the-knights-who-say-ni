@@ -3,12 +3,9 @@ import http
 from http import client
 import json
 import operator
-import typing as t
 from urllib import parse
 
-import aiohttp
 from aiohttp import hdrs
-from aiohttp import web
 
 from . import abc
 
@@ -60,10 +57,6 @@ class PullRequestEvent(enum.Enum):
     synchronize = "synchronize"
 
 
-JSONType = t.Union[str, int, float, bool, None, t.Dict[str, t.Any],
-                   t.List[t.Any]]
-
-
 class Host(abc.ContribHost):
 
     """Implement a webhook for GitHub pull requests."""
@@ -74,7 +67,7 @@ class Host(abc.ContribHost):
                         PullRequestEvent.unlabeled.value,
                         PullRequestEvent.synchronize.value}
 
-    def __init__(self, event: PullRequestEvent, request: JSONType):
+    def __init__(self, event, request):
         """Represent a contribution."""
         self.event = event
         self.request = request
@@ -112,12 +105,12 @@ class Host(abc.ContribHost):
             raise TypeError(msg)
 
     @staticmethod
-    def check_response(response: web.Response) -> None:
+    def check_response(response):
         if response.status >= 300:
             msg = 'unexpected response: {}'.format(response.status)
             raise client.HTTPException(msg)
 
-    async def get(self, url: str) -> JSONType:
+    async def get(self, url: str):
         """Make a GET request for some JSON data.
 
         Abstracted out for easy testing w/o requiring internet access.
@@ -126,7 +119,7 @@ class Host(abc.ContribHost):
             self.check_response(response)
             return (await response.json())
 
-    async def post(self, url: str, payload: JSONType) -> None:
+    async def post(self, url: str, payload):
         """Make a POST request with JSON data to a URL."""
         encoding = 'utf-8'
         encoded_json = json.dumps(payload).encode(encoding)
@@ -136,7 +129,7 @@ class Host(abc.ContribHost):
         async with post_manager as response:
             self.check_response(response)
 
-    async def delete(self, url: str) -> None:
+    async def delete(self, url):
         """Make a DELETE request to a URL."""
         async with abc.session().delete(url) as response:
             self.check_response(response)
@@ -166,7 +159,7 @@ class Host(abc.ContribHost):
         mapping = {'/name': quoted_label}
         return self._labels_url.format_map(mapping)
 
-    async def current_label(self) -> t.Optional[str]:
+    async def current_label(self):
         """Return the current CLA-related label."""
         labels_url = await self.labels_url()
         all_labels = map(operator.itemgetter('name'),
@@ -175,7 +168,7 @@ class Host(abc.ContribHost):
         cla_labels = sorted(cla_labels)
         return cla_labels[0] if len(cla_labels) > 0 else None
 
-    async def set_label(self, status: abc.Status) -> str:
+    async def set_label(self, status):
         """Set the label on the pull request based on the status of the CLA."""
         labels_url = await self.labels_url()
         if status == abc.Status.signed:
@@ -185,7 +178,7 @@ class Host(abc.ContribHost):
             await self.post(labels_url, [NO_CLA])
             return NO_CLA
 
-    async def remove_label(self) -> t.Optional[str]:
+    async def remove_label(self):
         """Remove any CLA-related labels from the pull request."""
         cla_label = await self.current_label()
         if cla_label is None:
@@ -194,7 +187,7 @@ class Host(abc.ContribHost):
         await self.delete(deletion_url)
         return cla_label
 
-    async def comment(self, status: abc.Status) -> str:
+    async def comment(self, status):
         """Add an appropriate comment relating to the CLA status."""
         comments_url = self.request['pull_request']['comments_url']
         if status == abc.Status.signed:
