@@ -8,7 +8,7 @@ Work done surrounding this project is governed by the
 The `requirements.txt` file is frozen to the currently tested
 versions of `requirements.base`. To update, create a venv,
 run `python3 -m pip install -r requirements.base`, run all tests,
-and then update `requirements.txt`.
+and then update `requirements.txt` with the output from `pip freeze`.
 
 ## Testing
 ### Running tests
