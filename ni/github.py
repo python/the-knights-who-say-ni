@@ -21,9 +21,9 @@ NO_CLA_TEMPLATE = """Hello, and thanks for your contribution!
 Once you have done everything that's needed, please reply here and someone will
 verify everything is in order.
 
-Also, please be aware that all interactions involving this repository fall
-under the
-[PSF Code of Conduct](https://www.python.org/psf/codeofconduct/).
+Also, please read the
+[Python's Developer Guide](https://docs.python.org/devguide/) if you have not
+already.
 """
 
 NO_CLA_BODY = """Unfortunately our records indicate you have not signed a
