@@ -1,8 +1,7 @@
 # The Knights Who Say "Ni"!
-A bot to check if a contributor to the the
-[Python project](https://github.com/python) has signed a contributor
-license agreement (CLA; an example of a CLA is the
-[PSF CLA](https://www.python.org/psf/contrib/contrib-form/)).
+A bot to check if a contributor to a
+[Python project](https://github.com/python) has signed the
+[PSF CLA](https://www.python.org/psf/contrib/contrib-form/).
 
 [![Build Status](https://travis-ci.org/brettcannon/knights-who-say-ni.svg?branch=master)](https://travis-ci.org/brettcannon/knights-who-say-ni)
 [![codecov.io](https://codecov.io/github/brettcannon/knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/brettcannon/knights-who-say-ni?branch=master)
@@ -19,19 +18,16 @@ organization -- the
 [Python Software Foundation](https://www.python.org/psf-landing/) in
 Python's case -- do not have the money to pay off a patent troll if a
 mistake is made and patented code is contributed. Basically a CLA
-means the Python project has someone to legally blame if some code
-was given to the project that it shouldn't have ever received.
-Obviously this is all a pain to deal with, but it's better to be safe
-than sorry.
+means the Python project has some legal ground to stand on when it says
+it didn't mean to use any patented code. Obviously this is all a pain
+to deal with, but it's better to be safe than sorry.
 
 But beyond just making sure the PSF is in the legal clear if bad code
 is given to the Python project, it also helps make sure others who
 use code from the Python project are also in the clear. If a company
 wants to use Python code in a commercial fashion, having the Python
 project's code covered by CLAs means they don't have to worry about
-being sued as well. Hence it becomes much easier for the Python
-project's code to be used widely by companies because they don't have
-to worry about being sued themselves.
+being sued as well.
 
 ## Design goals
 A CLA bot breaks down into essentially three components:
