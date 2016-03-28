@@ -5,8 +5,8 @@
     "color": "009800"
   },
   {
-    "url": "https://api.github.com/repos/Microsoft/Pyjion/labels/CLA:%20%E2%98%91",
-    "name": "CLA: ☑",
+    "url": "https://api.github.com/repos/Microsoft/Pyjion/labels/CLA%3A%20%E2%9C%93",
+    "name": "CLA: ✓",
     "color": "009800"
   }
 ]
