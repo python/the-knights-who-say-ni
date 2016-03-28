@@ -3,9 +3,7 @@ A bot to check if a contributor to a
 [Python project](https://github.com/python) has signed the
 [PSF CLA](https://www.python.org/psf/contrib/contrib-form/).
 
-[![Build Status](https://travis-ci.org/brettcannon/knights-who-say-ni.svg?branch=master)](https://travis-ci.org/brettcannon/knights-who-say-ni)
-[![codecov.io](https://codecov.io/github/brettcannon/knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/brettcannon/knights-who-say-ni?branch=master)
-[![Requirements Status](https://requires.io/github/brettcannon/knights-who-say-ni/requirements.svg?branch=master)](https://requires.io/github/brettcannon/knights-who-say-ni/requirements/?branch=master)
+[![Build Status](https://travis-ci.org/python/the-knights-who-say-ni.svg?branch=master)](https://travis-ci.org/python/the-knights-who-say-ni)
 
 ## Why is this project necessary?
 A CLA is necessary to make sure that someone contributing to an

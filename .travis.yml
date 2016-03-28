@@ -1,10 +1,11 @@
 language: python
 python:
   - "3.5"
-before_install:
-  - pip install coverage==4.1b2 codecov
+#before_install:
+#  - pip install coverage==4.1b2 codecov
 install:
   - pip install -r requirements.txt
-script: coverage run --branch -m unittest discover -t . -s ni/test/
-after_success:
-  - codecov
+script: unittest discover -t . -s ni/test/
+# coverage run --branch -m
+#after_success:
+#  - codecov
