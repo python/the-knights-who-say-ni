@@ -5,7 +5,7 @@ python:
 #  - pip install coverage==4.1b2 codecov
 install:
   - pip install -r requirements.txt
-script: unittest discover -t . -s ni/test/
+script: python3 -m unittest discover -t . -s ni/test/
 # coverage run --branch -m
 #after_success:
 #  - codecov
