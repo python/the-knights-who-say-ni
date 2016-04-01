@@ -16,7 +16,7 @@ def handler(server, cla_records):
         try:
             contribution = await ContribHost.process(request)
             usernames = await contribution.usernames()
-            cla_status = await cla_records.check(usernames)  # XXX blocked on b.p.o.
+            cla_status = await cla_records.check(usernames)
             # With a work queue, one could make the updating of the
             # contribution a work item and return an HTTP 202 response.
             await contribution.update(cla_status)
