@@ -269,11 +269,21 @@ class GitHubTests(util.TestCase):
         self.noException(contrib.update(abc.Status.username_not_found))
 
 
+class FakeResponse(web.Response):
+
+    def __init__(self, *args, data=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._data = data
+
+    async def json(self):
+        return self._data
+
+
 class FakeSession:
 
-    def __init__(self, response=None):
+    def __init__(self, *, data=None, response=None):
         if response is None:
-            response = web.Response(status=200)
+            response = FakeResponse(status=200, data=data)
         self._response = response
 
     def __call__(self):
@@ -285,32 +295,36 @@ class FakeSession:
     async def __aexit__(self, exc_type, exc, tb):
         pass
 
+    def get(self, url):
+        self.method = 'GET'
+        self.url = url
+        return self
+
     def post(self, url, data, headers):
+        self.method = 'POST'
         self.url = url
         self.data = data
         self.headers = headers
         return self
 
     def delete(self, url):
+        self.method = 'DELETE'
         self.url = url
         return self
 
 
 class NetworkingTests(util.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        session = abc.session()
-        session.close()
-        abc.session = abc._session_factory()
-
     def test_get(self):
         # Test a GET request to a live GitHub API URL.
         contrib = github.Host(github.PullRequestEvent.opened, {})
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
-        response = self.run_awaitable(contrib.get(url), loop=abc.loop())
-        self.assertIn('url', response)
-        self.assertEqual(response['url'], url)
+        payload = {'hello': 'world'}
+        fake_session = FakeSession(data=payload)
+        with mock.patch('ni.abc.session', fake_session):
+            returned = self.noException(contrib.get(url))
+        self.assertEqual(payload, returned)
+        self.assertEqual(fake_session.url, url)
 
     def test_post(self):
         contrib = github.Host(None, None)

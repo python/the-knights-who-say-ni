@@ -107,7 +107,8 @@ class Host(abc.ContribHost):
     @staticmethod
     def check_response(response):
         if response.status >= 300:
-            msg = 'unexpected response: {}'.format(response.status)
+            msg = 'unexpected response for {!r}: {}'.format(response.url,
+                                                            response.status)
             raise client.HTTPException(msg)
 
     async def get(self, url: str):
