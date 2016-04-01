@@ -1,6 +1,8 @@
 import asyncio
 import unittest
 
+from .. import abc
+
 
 class FakeRequest:
 
@@ -20,6 +22,13 @@ class FakeRequest:
 
 
 class TestCase(unittest.TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        session = abc.session()
+        session.close()
+        abc.session = abc._session_factory()
+        super().tearDownClass()
 
     def run_awaitable(self, coroutine, *, loop=None):
         if loop is None:

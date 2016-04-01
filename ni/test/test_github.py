@@ -298,12 +298,6 @@ class FakeSession:
 
 class NetworkingTests(util.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        session = abc.session()
-        session.close()
-        abc.session = abc._session_factory()
-
     def test_get(self):
         # Test a GET request to a live GitHub API URL.
         contrib = github.Host(github.PullRequestEvent.opened, {})
