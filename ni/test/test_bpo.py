@@ -1,21 +1,27 @@
+from http import client
 import unittest
+from unittest import mock
 
 from . import util
 from .. import abc
 from .. import bpo
 
 
-class BPOTests(util.TestCase):
+class OfflineTests(util.TestCase):
+
+    def test_failure(self):
+        host = bpo.Host()
+        failed_response = util.FakeResponse(status=404)
+        fake_session = util.FakeSession(response=failed_response)
+        with mock.patch('ni.abc.session', fake_session):
+            with self.assertRaises(client.HTTPException):
+                self.run_awaitable(host.check(['brettcannon']))
+
+
+class NetworkTests(util.TestCase):
 
     signed_cla = 'brettcannon'
     not_signed_cla = 'the-knights-who-say-ni'
-
-    @classmethod
-    def tearDownClass(cls):
-        session = abc.session()
-        session.close()
-        abc.session = abc._session_factory()
-        super().tearDownClass()
 
     def setUp(self):
         self.bpo = bpo.Host()
