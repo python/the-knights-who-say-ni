@@ -1,5 +1,6 @@
 import asyncio
 import copy
+from http import client
 import json
 import pathlib
 import unittest
@@ -269,50 +270,6 @@ class GitHubTests(util.TestCase):
         self.noException(contrib.update(abc.Status.username_not_found))
 
 
-class FakeResponse(web.Response):
-
-    def __init__(self, *args, data=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._data = data
-
-    async def json(self):
-        return self._data
-
-
-class FakeSession:
-
-    def __init__(self, *, data=None, response=None):
-        if response is None:
-            response = FakeResponse(status=200, data=data)
-        self._response = response
-
-    def __call__(self):
-        return self
-
-    async def __aenter__(self):
-        return self._response
-
-    async def __aexit__(self, exc_type, exc, tb):
-        pass
-
-    def get(self, url):
-        self.method = 'GET'
-        self.url = url
-        return self
-
-    def post(self, url, data, headers):
-        self.method = 'POST'
-        self.url = url
-        self.data = data
-        self.headers = headers
-        return self
-
-    def delete(self, url):
-        self.method = 'DELETE'
-        self.url = url
-        return self
-
-
 class NetworkingTests(util.TestCase):
 
     def test_get(self):
@@ -320,17 +277,23 @@ class NetworkingTests(util.TestCase):
         contrib = github.Host(github.PullRequestEvent.opened, {})
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         payload = {'hello': 'world'}
-        fake_session = FakeSession(data=payload)
+        fake_session = util.FakeSession(data=payload)
         with mock.patch('ni.abc.session', fake_session):
             returned = self.noException(contrib.get(url))
         self.assertEqual(payload, returned)
         self.assertEqual(fake_session.url, url)
+        # Test making a failed request.
+        failed_response = util.FakeResponse(status=404)
+        fake_session = util.FakeSession(response=failed_response)
+        with mock.patch('ni.abc.session', fake_session):
+            with self.assertRaises(client.HTTPException):
+                self.run_awaitable(contrib.get(url))
 
     def test_post(self):
         contrib = github.Host(None, None)
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
-        fake_session = FakeSession()
+        fake_session = util.FakeSession()
         with mock.patch('ni.abc.session', fake_session):
             self.noException(contrib.post(url, data))
         self.assertEqual(fake_session.url, url)
@@ -338,12 +301,24 @@ class NetworkingTests(util.TestCase):
         self.assertEqual(json.loads(json_string), data)
         content_type = fake_session.headers[hdrs.CONTENT_TYPE]
         self.assertTrue(content_type.startswith('application/json'))
+        # Test making a failed request.
+        failed_response = util.FakeResponse(status=404)
+        fake_session = util.FakeSession(response=failed_response)
+        with mock.patch('ni.abc.session', fake_session):
+            with self.assertRaises(client.HTTPException):
+                self.run_awaitable(contrib.post(url, data))
 
     def test_delete(self):
         contrib = github.Host(None, None)
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
-        fake_session = FakeSession()
+        fake_session = util.FakeSession()
         with mock.patch('ni.abc.session', fake_session):
             self.noException(contrib.delete(url))
         self.assertEqual(fake_session.url, url)
+        # Test making a failed request.
+        failed_response = util.FakeResponse(status=404)
+        fake_session = util.FakeSession(response=failed_response)
+        with mock.patch('ni.abc.session', fake_session):
+            with self.assertRaises(client.HTTPException):
+                self.run_awaitable(contrib.delete(url))

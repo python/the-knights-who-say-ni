@@ -1,6 +1,8 @@
 import asyncio
 import unittest
 
+from aiohttp import web
+
 from .. import abc
 
 
@@ -19,6 +21,53 @@ class FakeRequest:
 
     async def json(self):
         return self._payload
+
+
+class FakeResponse(web.Response):
+
+    def __init__(self, *args, data=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._data = data
+
+    async def json(self):
+        return self._data
+
+
+class FakeSession:
+
+    def __init__(self, *, data=None, response=None):
+        if response is None:
+            response = FakeResponse(status=200, data=data)
+        self._response = response
+
+    def __call__(self):
+        return self
+
+    async def __aenter__(self):
+        return self._response
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+    def get(self, url):
+        self.method = 'GET'
+        self.url = url
+        self._response.url = url
+        return self
+
+    def post(self, url, data, headers):
+        self.method = 'POST'
+        self.url = url
+        self._response.url = url
+        self.data = data
+        self.headers = headers
+        return self
+
+    def delete(self, url):
+        self.method = 'DELETE'
+        self.url = url
+        self._response.url = url
+        return self
 
 
 class TestCase(unittest.TestCase):
