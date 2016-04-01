@@ -38,4 +38,4 @@ class TestCase(unittest.TestCase):
 
     def noException(self, coroutine):
         # Shouldn't raise any exception.
-        self.run_awaitable(coroutine)
+        return self.run_awaitable(coroutine)
