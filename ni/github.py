@@ -10,9 +10,9 @@ from aiohttp import hdrs
 from . import abc
 
 
-LABEL_PREFIX = 'CLA: '
-CLA_OK = LABEL_PREFIX + '✓'
-NO_CLA = LABEL_PREFIX + '✗'
+LABEL_PREFIX = 'CLA '
+CLA_OK = LABEL_PREFIX + 'signed'
+NO_CLA = LABEL_PREFIX + 'not signed'
 
 NO_CLA_TEMPLATE = """Hello, and thanks for your contribution!
 
