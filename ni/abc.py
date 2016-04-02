@@ -58,12 +58,13 @@ class ServerHost(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def log(self, exc):
-        """Log the exception."""
-
-    @abc.abstractmethod
     def contrib_auth_token(self):
         """Return the authorization token for the contribution host."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def log(self, exc):
+        """Log the exception."""
 
 
 class ContribHost(abc.ABC):
@@ -76,7 +77,7 @@ class ContribHost(abc.ABC):
         return '*', '/'  # pragma: no cover
 
     @abc.abstractclassmethod
-    async def process(self, request):
+    async def process(self, server, request):
         """Process a request into a contribution."""
         # This method exists because __init__() cannot be a coroutine.
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
