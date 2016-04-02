@@ -61,6 +61,10 @@ class ServerHost(abc.ABC):
     def log(self, exc):
         """Log the exception."""
 
+    @abc.abstractmethod
+    def contrib_auth_token(self):
+        """Return the authorization token for the contribution host."""
+
 
 class ContribHost(abc.ABC):
 

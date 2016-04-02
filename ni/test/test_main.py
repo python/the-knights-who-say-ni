@@ -13,6 +13,9 @@ class FakeServerHost(abc.ServerHost):
         """Specify the port to bind the listening socket to."""
         return 1234
 
+    def contrib_auth_token(self):
+        return super().contrib_auth_token()
+
     def log(self, exc: Exception):
         """Log the exception."""
         self.logged = exc
