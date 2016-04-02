@@ -49,10 +49,11 @@ class FakeSession:
     async def __aexit__(self, exc_type, exc, tb):
         pass
 
-    def get(self, url):
+    def get(self, url, headers=None):
         self.method = 'GET'
         self.url = url
         self._response.url = url
+        self.headers = headers
         return self
 
     def post(self, url, data, headers):
@@ -63,11 +64,29 @@ class FakeSession:
         self.headers = headers
         return self
 
-    def delete(self, url):
+    def delete(self, url, headers=None):
         self.method = 'DELETE'
         self.url = url
         self._response.url = url
+        self.headers = headers
         return self
+
+
+class FakeServerHost(abc.ServerHost):
+
+    port = 1234
+    auth_token = 'some_auth_token'
+
+    def port(self):
+        """Specify the port to bind the listening socket to."""
+        return self.port
+
+    def contrib_auth_token(self):
+        return self.auth_token
+
+    def log(self, exc: Exception):
+        """Log the exception."""
+        self.logged = exc
 
 
 class TestCase(unittest.TestCase):

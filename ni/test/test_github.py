@@ -65,7 +65,7 @@ class GitHubTests(util.TestCase):
         # https://developer.github.com/webhooks/creating/#content-type
         request = util.FakeRequest(content_type='application/x-www-form-urlencoded')
         with self.assertRaises(abc.ResponseExit) as cm:
-            self.run_awaitable(github.Host.process(request))
+            self.run_awaitable(github.Host.process(util.FakeServerHost(), request))
         self.assertEqual(cm.exception.response.status, 415)
 
     def test_ping(self):
@@ -73,7 +73,8 @@ class GitHubTests(util.TestCase):
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
         with self.assertRaises(abc.ResponseExit) as cm:
-            self.run_awaitable(github.Host.process(util.FakeRequest(payload)))
+            self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                   util.FakeRequest(payload)))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_skipping(self):
@@ -85,12 +86,14 @@ class GitHubTests(util.TestCase):
             payload = {'action': event.value}
             request = util.FakeRequest(payload)
             with self.assertRaises(abc.ResponseExit) as cm:
-                self.run_awaitable(github.Host.process(request))
+                self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                       request))
             self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_opened(self):
         request = util.FakeRequest(self.opened_example)
-        result = self.run_awaitable(github.Host.process(request))
+        result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                        request))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
     def test_process_unlabeled(self):
@@ -98,19 +101,22 @@ class GitHubTests(util.TestCase):
         unlabeled_example_CLA = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_CLA['label']['name'] = github.CLA_OK
         request = util.FakeRequest(unlabeled_example_CLA)
-        result = self.run_awaitable(github.Host.process(request))
+        result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                        request))
         self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
         # Test a non-CLA label being removed.
         unlabeled_example_other = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_other['label']['name'] = 'missing something or other'
         request = util.FakeRequest(unlabeled_example_other)
         with self.assertRaises(abc.ResponseExit) as cm:
-            self.run_awaitable(github.Host.process(request))
+            self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                   request))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_synchronize(self):
         request = util.FakeRequest(self.synchronize_example)
-        result = self.run_awaitable(github.Host.process(request))
+        result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                        request))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
 
     def test_check_response(self):
@@ -128,8 +134,10 @@ class GitHubTests(util.TestCase):
         # and committer for every commit in the PR.
         what = ('GET', self.commits_url)
         network = {what: self.commits_example}
-        contrib = OfflineHost(github.PullRequestEvent.opened,
-                              self.opened_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.opened,
+                              self.opened_example,
+                              network=network)
         got = self.run_awaitable(contrib.usernames())
         want = {'brettcannon', 'rbtcollins-author', 'rbtcollins-committer',
                 'dstufft-author', 'dstufft-committer'}
@@ -138,8 +146,10 @@ class GitHubTests(util.TestCase):
     def test_labels_url(self):
         # Get the proper labels URL for a PR.
         network = {('GET', self.issues_url): self.issues_example}
-        contrib = OfflineHost(github.PullRequestEvent.opened,
-                              self.opened_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.opened,
+                              self.opened_example,
+                              network=network)
         got = self.run_awaitable(contrib.labels_url())
         want = self.labels_url.format_map({'/name': ''})
         self.assertEqual(got, want)
@@ -152,8 +162,10 @@ class GitHubTests(util.TestCase):
     def test_current_label(self):
         # Test getting the current CLA label (if any).
         network = {('GET', self.issues_url): self.issues_example}
-        contrib = OfflineHost(github.PullRequestEvent.synchronize,
-                              self.synchronize_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.synchronize,
+                              self.synchronize_example,
+                              network=network)
         # No label set.
         network[('GET', self.labels_url)] = []
         label = self.run_awaitable(contrib.current_label())
@@ -174,8 +186,10 @@ class GitHubTests(util.TestCase):
         # negative one.
         network = {('GET', self.issues_url): self.issues_example,
                    ('POST', self.labels_url): [github.CLA_OK]}
-        contrib = OfflineHost(github.PullRequestEvent.opened,
-                              self.opened_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.opened,
+                              self.opened_example,
+                              network=network)
         label = self.run_awaitable(contrib.set_label(abc.Status.signed))
         self.assertEqual(label, github.CLA_OK)
         network[('POST', self.labels_url)] = [github.NO_CLA]
@@ -190,8 +204,10 @@ class GitHubTests(util.TestCase):
         network = {('GET', self.issues_url): self.issues_example,
                    ('GET', self.labels_url): self.labels_example,
                    ('DELETE', deletion_url): True}
-        contrib = OfflineHost(github.PullRequestEvent.synchronize,
-                              self.synchronize_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.synchronize,
+                              self.synchronize_example,
+                              network=network)
         deleted = self.run_awaitable(contrib.remove_label())
         self.assertEqual(deleted, github.CLA_OK)
         network[('GET', self.labels_url)] = []
@@ -201,8 +217,10 @@ class GitHubTests(util.TestCase):
     def test_comment(self):
         # Add a comment related to the status.
         network = {}
-        contrib = OfflineHost(github.PullRequestEvent.opened,
-                              self.opened_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.opened,
+                              self.opened_example,
+                              network=network)
         message = self.run_awaitable(contrib.comment(abc.Status.signed))
         self.assertIsNone(message)
         expected = {'body':
@@ -223,23 +241,29 @@ class GitHubTests(util.TestCase):
         network = {('GET', self.issues_url): self.issues_example,
                    ('POST', self.labels_url): [github.NO_CLA],
                    ('POST', self.comments_url): {'body': comment}}
-        contrib = OfflineHost(github.PullRequestEvent.opened,
-                              self.opened_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.opened,
+                              self.opened_example,
+                              network=network)
         self.noException(contrib.update(abc.Status.not_signed))
 
     def test_update_unlabeled(self):
         # Adding CLA status to a PR that just lost its CLA label.
         network = {('GET', self.issues_url): self.issues_example,
                    ('POST', self.labels_url): [github.CLA_OK]}
-        contrib = OfflineHost(github.PullRequestEvent.unlabeled,
-                              self.unlabeled_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.unlabeled,
+                              self.unlabeled_example,
+                              network=network)
         self.noException(contrib.update(abc.Status.signed))
 
     def test_update_synchronize(self):
         # Update the PR after it's synchronized.
         network = {('GET', self.issues_url): self.issues_example}
-        contrib = OfflineHost(github.PullRequestEvent.synchronize,
-                              self.synchronize_example, network=network)
+        contrib = OfflineHost(util.FakeServerHost(),
+                              github.PullRequestEvent.synchronize,
+                              self.synchronize_example,
+                              network=network)
         # CLA signed and already labeled as such.
         network[('GET', self.labels_url)] = self.labels_example
         self.noException(contrib.update(abc.Status.signed))
@@ -274,7 +298,8 @@ class NetworkingTests(util.TestCase):
 
     def test_get(self):
         # Test a GET request to a live GitHub API URL.
-        contrib = github.Host(github.PullRequestEvent.opened, {})
+        contrib = github.Host(util.FakeServerHost(),
+                              github.PullRequestEvent.opened, {})
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         payload = {'hello': 'world'}
         fake_session = util.FakeSession(data=payload)
@@ -282,6 +307,9 @@ class NetworkingTests(util.TestCase):
             returned = self.noException(contrib.get(url))
         self.assertEqual(payload, returned)
         self.assertEqual(fake_session.url, url)
+        self.assertIn('Authorization', fake_session.headers)
+        self.assertEqual(fake_session.headers['Authorization'],
+                          'token ' + util.FakeServerHost.auth_token)
         # Test making a failed request.
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
@@ -290,7 +318,7 @@ class NetworkingTests(util.TestCase):
                 self.run_awaitable(contrib.get(url))
 
     def test_post(self):
-        contrib = github.Host(None, None)
+        contrib = github.Host(util.FakeServerHost(), None, None)
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         fake_session = util.FakeSession()
@@ -301,6 +329,9 @@ class NetworkingTests(util.TestCase):
         self.assertEqual(json.loads(json_string), data)
         content_type = fake_session.headers[hdrs.CONTENT_TYPE]
         self.assertTrue(content_type.startswith('application/json'))
+        self.assertIn('Authorization', fake_session.headers)
+        self.assertEqual(fake_session.headers['Authorization'],
+                          'token ' + util.FakeServerHost.auth_token)
         # Test making a failed request.
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
@@ -309,13 +340,16 @@ class NetworkingTests(util.TestCase):
                 self.run_awaitable(contrib.post(url, data))
 
     def test_delete(self):
-        contrib = github.Host(None, None)
+        contrib = github.Host(util.FakeServerHost(), None, None)
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         fake_session = util.FakeSession()
         with mock.patch('ni.abc.session', fake_session):
             self.noException(contrib.delete(url))
         self.assertEqual(fake_session.url, url)
+        self.assertIn('Authorization', fake_session.headers)
+        self.assertEqual(fake_session.headers['Authorization'],
+                          'token ' + util.FakeServerHost.auth_token)
         # Test making a failed request.
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)

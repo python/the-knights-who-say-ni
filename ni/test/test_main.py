@@ -7,20 +7,6 @@ from .. import abc
 from . import util
 
 
-class FakeServerHost(abc.ServerHost):
-
-    def port(self):
-        """Specify the port to bind the listening socket to."""
-        return 1234
-
-    def contrib_auth_token(self):
-        return super().contrib_auth_token()
-
-    def log(self, exc: Exception):
-        """Log the exception."""
-        self.logged = exc
-
-
 class FakeCLAHost(abc.CLAHost):
 
     """Abstract base class for the CLA records platform."""
@@ -46,7 +32,7 @@ class FakeContribHost(abc.ContribHost):
     def route(self):
         return '*', '/'  # pragma: no cover
 
-    async def process(self, request):
+    async def process(self, server, request):
         """Process a request into a contribution."""
         if self._raise is not None:
             raise self._raise
@@ -67,7 +53,7 @@ class HandlerTest(util.TestCase):
         # Success case.
         usernames = ['brettcannon']
         status = abc.Status.signed
-        server = FakeServerHost()
+        server = util.FakeServerHost()
         cla = FakeCLAHost(status)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
@@ -80,7 +66,7 @@ class HandlerTest(util.TestCase):
 
     def test_ResponseExit(self):
         # Test when ResponseExit is raised.
-        server = FakeServerHost()
+        server = util.FakeServerHost()
         cla = FakeCLAHost()
         text = 'test'
         response_exit = abc.ResponseExit(status=http.HTTPStatus.FOUND,
@@ -94,7 +80,7 @@ class HandlerTest(util.TestCase):
 
     def test_unexpected_exception(self):
         # Test when a non-ResponseExit exception is raised.
-        server = FakeServerHost()
+        server = util.FakeServerHost()
         cla = FakeCLAHost()
         exc = Exception('test')
         contrib = FakeContribHost(raise_=exc)

@@ -67,13 +67,14 @@ class Host(abc.ContribHost):
                         PullRequestEvent.unlabeled.value,
                         PullRequestEvent.synchronize.value}
 
-    def __init__(self, event, request):
+    def __init__(self, server, event, request):
         """Represent a contribution."""
+        self.server = server
         self.event = event
         self.request = request
 
     @classmethod
-    async def process(cls, request):
+    async def process(cls, server, request):
         """Process the pull request."""
         # https://developer.github.com/webhooks/creating/#content-type
         if request.content_type != 'application/json':
@@ -90,14 +91,14 @@ class Host(abc.ContribHost):
         elif payload['action'] not in cls._useful_actions:
             raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] == PullRequestEvent.opened.value:
-            return cls(PullRequestEvent.opened, payload)
+            return cls(server, PullRequestEvent.opened, payload)
         elif payload['action'] == PullRequestEvent.unlabeled.value:
             label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
                 raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-            return cls(PullRequestEvent.unlabeled, payload)
+            return cls(server, PullRequestEvent.unlabeled, payload)
         elif payload['action'] == PullRequestEvent.synchronize.value:
-            return cls(PullRequestEvent.synchronize, payload)
+            return cls(server, PullRequestEvent.synchronize, payload)
         else:  # pragma: no cover
             # Should never happen.
             msg = "don't know how to handle a {!r} event".format(
@@ -111,12 +112,16 @@ class Host(abc.ContribHost):
                                                             response.status)
             raise client.HTTPException(msg)
 
+    def auth_header(self):
+        return {'Authorization': 'token ' + self.server.contrib_auth_token()}
+
     async def get(self, url: str):
         """Make a GET request for some JSON data.
 
         Abstracted out for easy testing w/o requiring internet access.
         """
-        async with abc.session().get(url) as response:
+        headers = self.auth_header()
+        async with abc.session().get(url, headers=headers) as response:
             self.check_response(response)
             return (await response.json())
 
@@ -124,15 +129,17 @@ class Host(abc.ContribHost):
         """Make a POST request with JSON data to a URL."""
         encoding = 'utf-8'
         encoded_json = json.dumps(payload).encode(encoding)
-        header = {hdrs.CONTENT_TYPE: 'application/json; charset=' + encoding}
+        headers = {hdrs.CONTENT_TYPE: 'application/json; charset=' + encoding}
+        headers.update(self.auth_header())
         post_manager = abc.session().post(url, data=encoded_json,
-                                          headers=header)
+                                          headers=headers)
         async with post_manager as response:
             self.check_response(response)
 
     async def delete(self, url):
         """Make a DELETE request to a URL."""
-        async with abc.session().delete(url) as response:
+        headers = self.auth_header()
+        async with abc.session().delete(url, headers=headers) as response:
             self.check_response(response)
 
     async def usernames(self):

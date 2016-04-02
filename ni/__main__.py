@@ -14,7 +14,7 @@ def handler(server, cla_records):
     async def respond(request):
         """Handle a webhook trigger from the contribution host."""
         try:
-            contribution = await ContribHost.process(request)
+            contribution = await ContribHost.process(server, request)
             usernames = await contribution.usernames()
             cla_status = await cla_records.check(usernames)
             # With a work queue, one could make the updating of the
