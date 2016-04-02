@@ -9,6 +9,9 @@ from .. import heroku
 
 class HerokuTests(unittest.TestCase):
 
+    def setUp(self):
+        self.server = heroku.Host()
+
     def test_port(self):
         # The port number comes from the PORT environment variable.
         old_port = os.environ.get('PORT')
@@ -20,12 +23,15 @@ class HerokuTests(unittest.TestCase):
         port = random.randint(1, 2**16 - 1)
         os.environ['PORT'] = str(port)
         self.addCleanup(reset_port)
-        server = heroku.Host()
-        self.assertEqual(server.port(), port)
+        self.assertEqual(self.server.port(), port)
+
+    def test_contrib_auth_token(self):
+        auth_token = 'some_oauth_token'
+        os.environ['GH_AUTH_TOKEN'] = auth_token
+        self.assertEqual(self.server.contrib_auth_token(), auth_token)
 
     def test_log(self):
         # Traceback and exception should be written to stderr.
-        server = heroku.Host()
         exc_type = NotImplementedError
         exc_message = 'hello'
         try:
@@ -34,7 +40,7 @@ class HerokuTests(unittest.TestCase):
             exc = caught
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            server.log(exc)
+            self.server.log(exc)
         logged = stderr.getvalue()
         self.assertIn(exc_type.__name__, logged)
         self.assertIn(exc_message, logged)
