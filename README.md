@@ -8,18 +8,17 @@ A bot to check if a contributor to a
 
 ## Why is this project necessary?
 A CLA is necessary to make sure that someone contributing to an
-open source project swears that they are only giving the project code
-which they have the right to give away. This means that there are no
-copyrights on the code from somewhere else, nor are there patents
-making the use of the code illegal. This is really important for open
-source projects like Python where the non-profit behind the
-organization -- the
+open source project legally promises that they are only giving code
+to the project which they have the right to give. This means that there
+are no copyrights on the code which prohibits contributing it, nor are
+there patents making the use of the code illegal. This is really
+important for open source projects like Python where the non-profit
+behind the organization -- the
 [Python Software Foundation](https://www.python.org/psf-landing/) in
-Python's case -- do not have the money to pay off a patent troll if a
+Python's case -- do not have the money to pay for a patent license if a
 mistake is made and patented code is contributed. Basically a CLA
 means the Python project has some legal ground to stand on when it says
-it didn't mean to use any patented code. Obviously this is all a pain
-to deal with, but it's better to be safe than sorry.
+it didn't mean to use any code it wasn't meant to have.
 
 But beyond just making sure the PSF is in the legal clear if bad code
 is given to the Python project, it also helps make sure others who
