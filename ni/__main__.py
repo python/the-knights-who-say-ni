@@ -20,7 +20,7 @@ def handler(server, cla_records):
             # With a work queue, one could make the updating of the
             # contribution a work item and return an HTTP 202 response.
             await contribution.update(cla_status)
-            return web.Response(status=http.HTTPStatus.NO_CONTENT)
+            return web.Response(status=http.HTTPStatus.OK)
         except abc.ResponseExit as exc:
             return exc.response
         except Exception as exc:
