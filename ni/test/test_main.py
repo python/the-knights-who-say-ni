@@ -60,7 +60,7 @@ class HandlerTest(util.TestCase):
         with mock.patch('ni.__main__.ContribHost', contrib):
             responder = __main__.handler(server, cla)
             response = self.run_awaitable(responder(request))
-        self.assertEqual(response.status, 204)
+        self.assertEqual(response.status, 200)
         self.assertEqual(cla.usernames, usernames)
         self.assertEqual(contrib.status, status)
 
