@@ -1,4 +1,5 @@
 language: python
+cache: pip
 python:
   - "3.5"
 # 4.1 fixes a bug that this project triggers.
