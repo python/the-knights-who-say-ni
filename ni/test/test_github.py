@@ -49,6 +49,7 @@ class GitHubTests(util.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        github.EASTEREGG_PROBABILITY = 0.0
         cls.opened_example = example('opened.json')
         cls.unlabeled_example = example('unlabeled.json')
         cls.synchronize_example = example('synchronize.json')

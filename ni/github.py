@@ -3,6 +3,7 @@ import http
 from http import client
 import json
 import operator
+import random
 from urllib import parse
 
 from aiohttp import hdrs
@@ -13,6 +14,7 @@ from . import abc
 LABEL_PREFIX = 'CLA '
 CLA_OK = LABEL_PREFIX + 'signed'
 NO_CLA = LABEL_PREFIX + 'not signed'
+EASTEREGG_PROBABILITY = 0.01
 
 NO_CLA_TEMPLATE = """Hello, and thanks for your contribution!
 
@@ -26,6 +28,11 @@ NO_CLA_BODY = """Unfortunately our records indicate you have not signed a \
 [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
 (CLA). For legal reasons we need you to sign this before we can look at your \
 contribution."""
+
+NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
+
+We also demand... [A SHRUBBERY!](https://www.youtube.com/watch?v=zIV4poUZAQo)
+"""
 
 NO_USERNAME_BODY = """Unfortunately we couldn't find an account corresponding \
 to your GitHub username at [bugs.python.org](http://bugs.python.org/) \
@@ -208,7 +215,10 @@ class Host(abc.ContribHost):
         if status == abc.Status.signed:
             return None
         elif status == abc.Status.not_signed:
-            message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY)
+            if random.random() < EASTEREGG_PROBABILITY:  # pragma: no cover
+                message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY_EASTEREGG)
+            else:
+                message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY)
         elif status == abc.Status.username_not_found:
             message = NO_CLA_TEMPLATE.format(body=NO_USERNAME_BODY)
         else:  # pragma: no cover
