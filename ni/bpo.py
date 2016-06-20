@@ -29,12 +29,11 @@ class Host(abc.CLAHost):
         if len(status_results) != len(usernames):
             raise ValueError("# of usernames don't match # of results "
                              "({} != {})".format(len(usernames), len(status_results)))
-        elif any(x not in (True, False, None) for x in status_results):
+        if any(x not in (True, False, None) for x in status_results):
             raise TypeError("unexpected value in " + str(status_results))
 
         if all(status_results):
             return abc.Status.signed
-        elif any(value is None for value in status_results):
+        if any(value is None for value in status_results):
             return abc.Status.username_not_found
-        else:
-            return abc.Status.not_signed
+        return abc.Status.not_signed
