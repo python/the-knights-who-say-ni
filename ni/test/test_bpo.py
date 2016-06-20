@@ -1,4 +1,5 @@
 from http import client
+import json
 import unittest
 from unittest import mock
 
@@ -15,6 +16,33 @@ class OfflineTests(util.TestCase):
         fake_session = util.FakeSession(response=failed_response)
         with mock.patch('ni.abc.session', fake_session):
             with self.assertRaises(client.HTTPException):
+                self.run_awaitable(host.check(['brettcannon']))
+
+    def test_filter_extraneous_data(self):
+        host = bpo.Host(util.FakeServerHost())
+        response_data = {'web-flow': None, 'brettcannon': True}
+        fake_response = util.FakeResponse(data=json.dumps(response_data))
+        fake_session = util.FakeSession(response=fake_response)
+        with mock.patch('ni.abc.session', fake_session):
+            result = self.run_awaitable(host.check(['brettcannon']))
+        self.assertEqual(result, abc.Status.signed)
+
+    def test_missing_data(self):
+        host = bpo.Host(util.FakeServerHost())
+        response_data = {'web-flow': None}
+        fake_response = util.FakeResponse(data=json.dumps(response_data))
+        fake_session = util.FakeSession(response=fake_response)
+        with mock.patch('ni.abc.session', fake_session):
+            with self.assertRaises(ValueError):
+                self.run_awaitable(host.check(['brettcannon']))
+
+    def test_bad_data(self):
+        host = bpo.Host(util.FakeServerHost())
+        response_data = {'brettcannon': 42}
+        fake_response = util.FakeResponse(data=json.dumps(response_data))
+        fake_session = util.FakeSession(response=fake_response)
+        with mock.patch('ni.abc.session', fake_session):
+            with self.assertRaises(TypeError):
                 self.run_awaitable(host.check(['brettcannon']))
 
 
