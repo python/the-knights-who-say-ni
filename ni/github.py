@@ -150,10 +150,16 @@ class Host(abc.ContribHost):
         commits = await self.get(pull_request['commits_url'])
         # For each commit, get the author and committer.
         for commit in commits:
-            if commit['commit']['author']['email'] != GITHUB_EMAIL:
-                logins.add(commit['author']['login'])
-            if commit['commit']['committer']['email'] != GITHUB_EMAIL:
-                logins.add(commit['committer']['login'])
+            author = commit['author']['login']
+            if commit['commit']['author']['email'] == GITHUB_EMAIL:
+                self.server.log("Ignoring GitHub-managed username: " + author)
+            else:
+                logins.add(author)
+            committer = commit['committer']['login']
+            if commit['commit']['committer']['email'] == GITHUB_EMAIL:
+                self.server.log("Ignoring GitHub-managed username: " + committer)
+            else:
+                logins.add(committer)
         return frozenset(logins)
 
     async def labels_url(self, label=None):
