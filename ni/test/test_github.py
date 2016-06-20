@@ -75,7 +75,7 @@ class GitHubTests(util.TestCase):
         with self.assertRaises(abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                    util.FakeRequest(payload)))
-        self.assertEqual(cm.exception.response.status, 204)
+        self.assertEqual(cm.exception.response.status, 200)
 
     def test_process_skipping(self):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
