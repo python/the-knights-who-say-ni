@@ -16,7 +16,9 @@ def handler(server, cla_records):
         try:
             contribution = await ContribHost.process(server, request)
             usernames = await contribution.usernames()
+            server.log("Usernames: " + str(usernames))
             cla_status = await cla_records.check(usernames)
+            server.log("CLA status: " + str(cla_status))
             # With a work queue, one could make the updating of the
             # contribution a work item and return an HTTP 202 response.
             await contribution.update(cla_status)
@@ -24,7 +26,7 @@ def handler(server, cla_records):
         except abc.ResponseExit as exc:
             return exc.response
         except Exception as exc:
-            server.log(exc)
+            server.log_exception(exc)
             return web.Response(
                     status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -37,7 +39,7 @@ if __name__ == '__main__':
         await abc.session().close()
     app.on_cleanup.append(cleanup)
     server = ServerHost()
-    cla_records = CLAHost()
+    cla_records = CLAHost(server)
     app.router.add_route(*ContribHost.route,
                          handler(server, cla_records))
     web.run_app(app, port=server.port())

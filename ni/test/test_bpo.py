@@ -10,7 +10,7 @@ from .. import bpo
 class OfflineTests(util.TestCase):
 
     def test_failure(self):
-        host = bpo.Host()
+        host = bpo.Host(util.FakeServerHost())
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
         with mock.patch('ni.abc.session', fake_session):
@@ -24,7 +24,7 @@ class NetworkTests(util.TestCase):
     not_signed_cla = 'the-knights-who-say-ni'
 
     def setUp(self):
-        self.bpo = bpo.Host()
+        self.bpo = bpo.Host(util.FakeServerHost())
 
     def test_signed(self):
         result = self.run_awaitable(self.bpo.check([self.signed_cla]),

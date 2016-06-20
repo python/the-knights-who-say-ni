@@ -30,7 +30,7 @@ class HerokuTests(unittest.TestCase):
         os.environ['GH_AUTH_TOKEN'] = auth_token
         self.assertEqual(self.server.contrib_auth_token(), auth_token)
 
-    def test_log(self):
+    def test_log_exception(self):
         # Traceback and exception should be written to stderr.
         exc_type = NotImplementedError
         exc_message = 'hello'
@@ -40,8 +40,15 @@ class HerokuTests(unittest.TestCase):
             exc = caught
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
-            self.server.log(exc)
+            self.server.log_exception(exc)
         logged = stderr.getvalue()
         self.assertIn(exc_type.__name__, logged)
         self.assertIn(exc_message, logged)
         self.assertIn('Traceback', logged)
+
+    def test_log(self):
+        message = "something happened"
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.server.log(message)
+        self.assertEqual(stderr.getvalue(), message + "\n")

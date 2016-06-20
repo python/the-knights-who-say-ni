@@ -63,8 +63,12 @@ class ServerHost(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def log(self, exc):
+    def log_exception(self, exc):
         """Log the exception."""
+
+    @abc.abstractmethod
+    def log(self, message):
+        """Log the message."""
 
 
 class ContribHost(abc.ABC):

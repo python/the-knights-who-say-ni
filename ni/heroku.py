@@ -18,7 +18,12 @@ class Host(abc.ServerHost):
         return os.environ['GH_AUTH_TOKEN']
 
     @staticmethod
-    def log(exc: Exception):
+    def log_exception(exc):
         """Log an exception and its traceback to stderr."""
         traceback.print_exception(type(exc), exc, exc.__traceback__,
                                   file=sys.stderr)
+
+    @staticmethod
+    def log(message):
+        """Log a message to stderr."""
+        print(message, file=sys.stderr)

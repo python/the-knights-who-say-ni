@@ -88,4 +88,4 @@ class HandlerTest(util.TestCase):
             responder = __main__.handler(server, cla)
             response = self.run_awaitable(responder(util.FakeRequest()))
         self.assertEqual(response.status, http.HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertEqual(server.logged, exc)
+        self.assertEqual(server.logged_exc, exc)
