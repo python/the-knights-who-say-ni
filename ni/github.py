@@ -40,6 +40,9 @@ And in case you haven't already, please make sure to sign the
 CLA."""
 
 
+GITHUB_EMAIL = 'noreply@github.com'
+
+
 @enum.unique
 class PullRequestEvent(enum.Enum):
     # https://developer.github.com/v3/activity/events/types/#pullrequestevent
@@ -147,8 +150,10 @@ class Host(abc.ContribHost):
         commits = await self.get(pull_request['commits_url'])
         # For each commit, get the author and committer.
         for commit in commits:
-            logins.add(commit['author']['login'])
-            logins.add(commit['committer']['login'])
+            if commit['commit']['author']['email'] != GITHUB_EMAIL:
+                logins.add(commit['author']['login'])
+            if commit['commit']['committer']['email'] != GITHUB_EMAIL:
+                logins.add(commit['committer']['login'])
         return frozenset(logins)
 
     async def labels_url(self, label=None):
