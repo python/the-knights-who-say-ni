@@ -84,9 +84,15 @@ class FakeServerHost(abc.ServerHost):
     def contrib_auth_token(self):
         return self.auth_token
 
-    def log(self, exc: Exception):
+    def log_exception(self, exc):
         """Log the exception."""
-        self.logged = exc
+        self.logged_exc = exc
+
+    def log(self, message):
+        try:
+            self.logged.append(message)
+        except AttributeError:
+            self.logged = [message]
 
 
 class TestCase(unittest.TestCase):
