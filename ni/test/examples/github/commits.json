@@ -208,5 +208,75 @@
         "html_url": "https://github.com/pypa/pip/commit/4938cb2b5278e1ee80a03e15a0818a7b22ca336f"
       }
     ]
+  },
+  {
+    "sha": "ae15a08c55412d87ce65cdce794e480734d7962f",
+    "commit": {
+      "author": {
+        "name": "Brett Cannon",
+        "email": "brettcannon@users.noreply.github.com",
+        "date": "2016-06-20T17:29:28Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2016-06-20T17:29:28Z"
+      },
+      "message": "Tweak some Travis settings for potentially faster builds",
+      "tree": {
+        "sha": "eb4a5f1d92c6af04abb8620a5e1aa0b0b68685b7",
+        "url": "https://api.github.com/repos/python/peps/git/trees/eb4a5f1d92c6af04abb8620a5e1aa0b0b68685b7"
+      },
+      "url": "https://api.github.com/repos/python/peps/git/commits/ae15a08c55412d87ce65cdce794e480734d7962f",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/python/peps/commits/ae15a08c55412d87ce65cdce794e480734d7962f",
+    "html_url": "https://github.com/python/peps/commit/ae15a08c55412d87ce65cdce794e480734d7962f",
+    "comments_url": "https://api.github.com/repos/python/peps/commits/ae15a08c55412d87ce65cdce794e480734d7962f/comments",
+    "author": {
+      "login": "brettcannon",
+      "id": 54418,
+      "avatar_url": "https://avatars.githubusercontent.com/u/54418?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/brettcannon",
+      "html_url": "https://github.com/brettcannon",
+      "followers_url": "https://api.github.com/users/brettcannon/followers",
+      "following_url": "https://api.github.com/users/brettcannon/following{/other_user}",
+      "gists_url": "https://api.github.com/users/brettcannon/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/brettcannon/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/brettcannon/subscriptions",
+      "organizations_url": "https://api.github.com/users/brettcannon/orgs",
+      "repos_url": "https://api.github.com/users/brettcannon/repos",
+      "events_url": "https://api.github.com/users/brettcannon/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/brettcannon/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "ce35ed6e0edc23f8ce27ff90c637bc9dc0df56d4",
+        "url": "https://api.github.com/repos/python/peps/commits/ce35ed6e0edc23f8ce27ff90c637bc9dc0df56d4",
+        "html_url": "https://github.com/python/peps/commit/ce35ed6e0edc23f8ce27ff90c637bc9dc0df56d4"
+      }
+    ]
   }
 ]
