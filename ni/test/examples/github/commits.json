@@ -213,8 +213,8 @@
     "sha": "ae15a08c55412d87ce65cdce794e480734d7962f",
     "commit": {
       "author": {
-        "name": "Brett Cannon",
-        "email": "brettcannon@users.noreply.github.com",
+        "name": "GitHub",
+        "email": "noreply@github.com",
         "date": "2016-06-20T17:29:28Z"
       },
       "committer": {
@@ -234,7 +234,7 @@
     "html_url": "https://github.com/python/peps/commit/ae15a08c55412d87ce65cdce794e480734d7962f",
     "comments_url": "https://api.github.com/repos/python/peps/commits/ae15a08c55412d87ce65cdce794e480734d7962f/comments",
     "author": {
-      "login": "brettcannon",
+      "login": "web-flow author",
       "id": 54418,
       "avatar_url": "https://avatars.githubusercontent.com/u/54418?v=3",
       "gravatar_id": "",
@@ -253,7 +253,7 @@
       "site_admin": false
     },
     "committer": {
-      "login": "web-flow",
+      "login": "web-flow committer",
       "id": 19864447,
       "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=3",
       "gravatar_id": "",
