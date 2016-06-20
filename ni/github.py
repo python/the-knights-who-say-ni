@@ -87,22 +87,21 @@ class Host(abc.ContribHost):
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
             raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-        elif payload['action'] not in cls._useful_actions:
+        if payload['action'] not in cls._useful_actions:
             raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-        elif payload['action'] == PullRequestEvent.opened.value:
+        if payload['action'] == PullRequestEvent.opened.value:
             return cls(server, PullRequestEvent.opened, payload)
-        elif payload['action'] == PullRequestEvent.unlabeled.value:
+        if payload['action'] == PullRequestEvent.unlabeled.value:
             label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
                 raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
             return cls(server, PullRequestEvent.unlabeled, payload)
-        elif payload['action'] == PullRequestEvent.synchronize.value:
+        if payload['action'] == PullRequestEvent.synchronize.value:
             return cls(server, PullRequestEvent.synchronize, payload)
-        else:  # pragma: no cover
-            # Should never happen.
-            msg = "don't know how to handle a {!r} event".format(
-                payload['action'])
-            raise TypeError(msg)
+        # Should never happen.
+        msg = "don't know how to handle a {!r} event".format(
+            payload['action'])
+        raise TypeError(msg)
 
     @staticmethod
     def check_response(response):
@@ -189,9 +188,8 @@ class Host(abc.ContribHost):
         if status == abc.Status.signed:
             await self.post(labels_url, [CLA_OK])
             return CLA_OK
-        else:
-            await self.post(labels_url, [NO_CLA])
-            return NO_CLA
+        await self.post(labels_url, [NO_CLA])
+        return NO_CLA
 
     async def remove_label(self):
         """Remove any CLA-related labels from the pull request."""
