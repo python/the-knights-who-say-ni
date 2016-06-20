@@ -18,25 +18,25 @@ NO_CLA_TEMPLATE = """Hello, and thanks for your contribution!
 
 {body}
 
-Once you have done everything that's needed, please reply here and someone will
-verify everything is in order.
+Once you have done everything that's needed, please reply here and someone \
+will verify everything is in order.
 """
 
-NO_CLA_BODY = """Unfortunately our records indicate you have not signed a
-[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
-(CLA). For legal reasons we need you to sign this before we can look at your
+NO_CLA_BODY = """Unfortunately our records indicate you have not signed a \
+[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
+(CLA). For legal reasons we need you to sign this before we can look at your \
 contribution."""
 
-NO_USERNAME_BODY = """Unfortunately we couldn't find an account corresponding
-to your GitHub username at [bugs.python.org](http://bugs.python.org/) (b.p.o).
-If you don't already have an account at b.p.o, please
-[create one](http://bugs.python.org/user?@template=register) and make sure to
-add your GitHub username. If you do already have an account at b.p.o then
+NO_USERNAME_BODY = """Unfortunately we couldn't find an account corresponding \
+to your GitHub username at [bugs.python.org](http://bugs.python.org/) \
+(b.p.o). If you don't already have an account at b.p.o, please \
+[create one](http://bugs.python.org/user?@template=register) and make sure to \
+add your GitHub username. If you do already have an account at b.p.o then \
 please go there and under "Your Details" add your GitHub username.
 
-And in case you haven't already, please make sure to sign the
-[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
-(CLA); we can't legally look at your contribution until you have signed the
+And in case you haven't already, please make sure to sign the \
+[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
+(CLA); we can't legally look at your contribution until you have signed the \
 CLA."""
 
 
