@@ -32,6 +32,9 @@ class FakeResponse(web.Response):
     async def json(self):
         return self._data
 
+    async def text(self):
+        return self._data
+
 
 class FakeSession:
 
