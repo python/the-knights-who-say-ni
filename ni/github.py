@@ -93,7 +93,7 @@ class Host(abc.ContribHost):
         if 'zen' in payload:
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
-            raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
+            raise abc.ResponseExit(status=http.HTTPStatus.OK)
         elif payload['action'] not in cls._useful_actions:
             raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] == PullRequestEvent.opened.value:
