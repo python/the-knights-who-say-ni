@@ -69,7 +69,8 @@ class GitHubTests(util.TestCase):
             self.run_awaitable(github.Host.process(util.FakeServerHost(), request))
         self.assertEqual(cm.exception.response.status, 415)
 
-    def test_ping(self):
+    @mock.patch('ni.github.Host._verify_signature')
+    def test_ping(self, _):
         # GitHub can ping a webhook to verify things are set up.
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
@@ -78,7 +79,16 @@ class GitHubTests(util.TestCase):
                                                    util.FakeRequest(payload)))
         self.assertEqual(cm.exception.response.status, 200)
 
-    def test_process_skipping(self):
+    def test_verify_signature(self):
+        data = b'the-knights-who-say-ni'
+        secret_token = 'some_secret_token'
+        expected = '0b63e1a89ba1a9d18b4b19749431e244c93c7873'
+        gh_signature = 'sha1={0}'.format(expected)
+        self.assertTrue(github.Host._verify_signature(secret_token, data,
+                                                      gh_signature))
+
+    @mock.patch('ni.github.Host._verify_signature')
+    def test_process_skipping(self, _):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
         # synchronized.
         for event in github.PullRequestEvent:
@@ -91,13 +101,15 @@ class GitHubTests(util.TestCase):
                                                        request))
             self.assertEqual(cm.exception.response.status, 204)
 
-    def test_process_opened(self):
+    @mock.patch('ni.github.Host._verify_signature')
+    def test_process_opened(self, _):
         request = util.FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                         request))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
-    def test_process_unlabeled(self):
+    @mock.patch('ni.github.Host._verify_signature')
+    def test_process_unlabeled(self, _):
         # Test a CLA label being removed.
         unlabeled_example_CLA = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_CLA['label']['name'] = github.CLA_OK
@@ -114,7 +126,8 @@ class GitHubTests(util.TestCase):
                                                    request))
         self.assertEqual(cm.exception.response.status, 204)
 
-    def test_process_synchronize(self):
+    @mock.patch('ni.github.Host._verify_signature')
+    def test_process_synchronize(self, _):
         request = util.FakeRequest(self.synchronize_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                         request))
