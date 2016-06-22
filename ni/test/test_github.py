@@ -102,6 +102,14 @@ class GitHubTests(util.TestCase):
             self.assertEqual(cm.exception.response.status, 204)
 
     @mock.patch('ni.github.Host._verify_signature')
+    def test_process_verify_signature_false(self, mock_verify_signature):
+        mock_verify_signature.return_value = False
+        request = util.FakeRequest()
+        with self.assertRaises(abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(util.FakeServerHost(), request))
+            self.assertEqual(cm.exception.response.status, 401)
+
+    @mock.patch('ni.github.Host._verify_signature')
     def test_process_opened(self, _):
         request = util.FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
