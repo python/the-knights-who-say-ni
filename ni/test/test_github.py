@@ -70,9 +70,10 @@ class GitHubTests(util.TestCase):
         self.assertEqual(cm.exception.response.status, 415)
 
     @mock.patch('ni.github.Host._verify_signature')
-    def test_ping(self, _):
+    def test_ping(self, mock_verify_signature):
         # GitHub can ping a webhook to verify things are set up.
         # https://developer.github.com/webhooks/#ping-event
+        mock_verify_signature.return_value = True
         payload = {'zen': 'something pithy'}
         with self.assertRaises(abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
@@ -82,15 +83,19 @@ class GitHubTests(util.TestCase):
     def test_verify_signature(self):
         data = b'the-knights-who-say-ni'
         secret_token = 'some_secret_token'
+        # expected token generated using the following:
+        # mac = hmac.new(secret_token.encode(encoding='UTF-8'), msg=data,
+        #                digestmod=hashlib.sha1).hexdigest()
         expected = '0b63e1a89ba1a9d18b4b19749431e244c93c7873'
         gh_signature = 'sha1={0}'.format(expected)
         self.assertTrue(github.Host._verify_signature(secret_token, data,
                                                       gh_signature))
 
     @mock.patch('ni.github.Host._verify_signature')
-    def test_process_skipping(self, _):
+    def test_process_skipping(self, mock_verify_signature):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
         # synchronized.
+        mock_verify_signature.return_value = True
         for event in github.PullRequestEvent:
             if event in self.acceptable:
                 continue
@@ -110,15 +115,17 @@ class GitHubTests(util.TestCase):
             self.assertEqual(cm.exception.response.status, 401)
 
     @mock.patch('ni.github.Host._verify_signature')
-    def test_process_opened(self, _):
+    def test_process_opened(self, mock_verify_signature):
+        mock_verify_signature.return_value = True
         request = util.FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                         request))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
     @mock.patch('ni.github.Host._verify_signature')
-    def test_process_unlabeled(self, _):
+    def test_process_unlabeled(self, mock_verify_signature):
         # Test a CLA label being removed.
+        mock_verify_signature.return_value = True
         unlabeled_example_CLA = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_CLA['label']['name'] = github.CLA_OK
         request = util.FakeRequest(unlabeled_example_CLA)
@@ -135,7 +142,8 @@ class GitHubTests(util.TestCase):
         self.assertEqual(cm.exception.response.status, 204)
 
     @mock.patch('ni.github.Host._verify_signature')
-    def test_process_synchronize(self, _):
+    def test_process_synchronize(self, mock_verify_signature):
+        mock_verify_signature.return_value = True
         request = util.FakeRequest(self.synchronize_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                         request))

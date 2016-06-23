@@ -30,10 +30,14 @@ class HerokuTests(unittest.TestCase):
         os.environ['GH_AUTH_TOKEN'] = auth_token
         self.assertEqual(self.server.contrib_auth_token(), auth_token)
 
-    def test_contrib_secret_token(self):
+    def test_secret_token_provided(self):
         secret_token = 'some_secret_token'
         os.environ['GH_SECRET_TOKEN'] = secret_token
-        self.assertEqual(self.server.contrib_secret_token(), secret_token)
+        self.assertEqual(self.server.secret_token(), secret_token)
+
+    def test_secret_token_missing(self):
+        with self.assertRaises(KeyError), contextlib.redirect_stderr(io.StringIO()):
+            self.server.secret_token()
 
     def test_log_exception(self):
         # Traceback and exception should be written to stderr.

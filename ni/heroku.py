@@ -18,8 +18,14 @@ class Host(abc.ServerHost):
         return os.environ['GH_AUTH_TOKEN']
 
     @staticmethod
-    def contrib_secret_token():
-        return os.environ['GH_SECRET_TOKEN']
+    def secret_token():
+        try:
+            secret_token = os.environ['GH_SECRET_TOKEN']
+        except KeyError as exc:
+            Host.log_exception(exc)
+            raise
+        else:
+            return secret_token
 
     @staticmethod
     def log_exception(exc):

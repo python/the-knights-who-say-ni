@@ -128,13 +128,14 @@ class Host(abc.ContribHost):
 
     @staticmethod
     def _verify_signature(secret_token, data, gh_signature):
-        """
+        """Validate payload from GitHub.
+
         Compute hash using secret token and payload body and ensure it
-        matches hash from GitHub
+        matches hash from GitHub.
         """
         mac = hmac.new(secret_token.encode(encoding='UTF-8'), msg=data,
                        digestmod=hashlib.sha1).hexdigest()
-        signature = 'sha1={0}'.format(mac)
+        signature = 'sha1={}'.format(mac)
         return hmac.compare_digest(signature, gh_signature)
 
     def auth_header(self):
