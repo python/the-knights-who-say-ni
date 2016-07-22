@@ -84,3 +84,18 @@ from Monty Python relating to someone preventing something from
 occurring without being given something (in the film it's the knights
 requiring a shrubbery, in real life it's lawyers requiring a signed
 CLA).
+
+## Deployment
+### Running on Heroku
+1. Create Heroku project
+2. Set the `GH_AUTH_TOKEN` environment variable to the GitHub oauth
+   token to be used by the bot
+3. Set up the Heroku project to get the code for the bot
+
+### Adding to a GitHub repository
+1. Add the appropriate bot as a contributor to the repository
+   (with write privileges)
+2. Add the necessary labels to the repository
+   (the positive and negative labels)
+3. Add the webhook
+   (only send pull request events)
