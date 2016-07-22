@@ -47,7 +47,7 @@ And in case you haven't already, please make sure to sign the \
 CLA."""
 
 
-GITHUB_EMAIL = 'noreply@github.com'
+GITHUB_EMAIL = 'noreply@github.com'.lower()  # Normalized for easy comparisons.
 
 
 @enum.unique
@@ -158,12 +158,12 @@ class Host(abc.ContribHost):
         # For each commit, get the author and committer.
         for commit in commits:
             author = commit['author']['login']
-            if commit['commit']['author']['email'] == GITHUB_EMAIL:
+            if commit['commit']['author']['email'].lower() == GITHUB_EMAIL:
                 self.server.log("Ignoring GitHub-managed username: " + author)
             else:
                 logins.add(author)
             committer = commit['committer']['login']
-            if commit['commit']['committer']['email'] == GITHUB_EMAIL:
+            if commit['commit']['committer']['email'].lower() == GITHUB_EMAIL:
                 self.server.log("Ignoring GitHub-managed username: " + committer)
             else:
                 logins.add(committer)

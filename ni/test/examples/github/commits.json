@@ -219,7 +219,7 @@
       },
       "committer": {
         "name": "GitHub",
-        "email": "noreply@github.com",
+        "email": "NoReply@GitHub.com",
         "date": "2016-06-20T17:29:28Z"
       },
       "message": "Tweak some Travis settings for potentially faster builds",
