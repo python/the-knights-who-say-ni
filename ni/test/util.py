@@ -1,4 +1,5 @@
 import asyncio
+import json
 import unittest
 
 from aiohttp import web
@@ -18,9 +19,13 @@ class FakeRequest:
     def __init__(self, payload={}, content_type='application/json'):
         self.content_type = content_type
         self._payload = payload
+        self.headers = {'HTTP_X_HUB_SIGNATURE': 'x_hub'}
 
     async def json(self):
         return self._payload
+
+    async def read(self):
+        return json.dumps(self._payload).encode(encoding='UTF-8')
 
 
 class FakeResponse(web.Response):
@@ -79,6 +84,7 @@ class FakeServerHost(abc.ServerHost):
 
     port = 1234
     auth_token = 'some_auth_token'
+    secret_token = 'some_secret_token'
 
     def port(self):
         """Specify the port to bind the listening socket to."""
@@ -86,6 +92,9 @@ class FakeServerHost(abc.ServerHost):
 
     def contrib_auth_token(self):
         return self.auth_token
+
+    def contrib_secret_token(self):
+        return self.secret_token
 
     def log_exception(self, exc):
         """Log the exception."""

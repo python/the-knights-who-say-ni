@@ -63,6 +63,11 @@ class ServerHost(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def secret_token(self):
+        """Return the authorization token for the contribution host."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def log_exception(self, exc):
         """Log the exception."""
 

@@ -1,4 +1,6 @@
 import enum
+import hashlib
+import hmac
 import http
 from http import client
 import json
@@ -89,6 +91,12 @@ class Host(abc.ContribHost):
             raise abc.ResponseExit(
                     status=http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE, text=msg)
 
+        binary_content = await request.read()
+
+        if not Host._verify_signature(server.contrib_secret_token(), binary_content,
+                                      request.headers['HTTP_X_HUB_SIGNATURE']):
+            raise abc.ResponseExit(status=http.HTTPStatus.UNAUTHORIZED)
+
         payload = await request.json()
         if 'zen' in payload:
             # A ping event; nothing to do.
@@ -117,6 +125,18 @@ class Host(abc.ContribHost):
             msg = 'unexpected response for {!r}: {}'.format(response.url,
                                                             response.status)
             raise client.HTTPException(msg)
+
+    @staticmethod
+    def _verify_signature(secret_token, data, gh_signature):
+        """Validate payload from GitHub.
+
+        Compute hash using secret token and payload body and ensure it
+        matches hash from GitHub.
+        """
+        mac = hmac.new(secret_token.encode(encoding='UTF-8'), msg=data,
+                       digestmod=hashlib.sha1).hexdigest()
+        signature = 'sha1={}'.format(mac)
+        return hmac.compare_digest(signature, gh_signature)
 
     def auth_header(self):
         return {'Authorization': 'token ' + self.server.contrib_auth_token()}
