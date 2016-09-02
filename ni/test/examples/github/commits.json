@@ -278,5 +278,39 @@
         "html_url": "https://github.com/python/peps/commit/ce35ed6e0edc23f8ce27ff90c637bc9dc0df56d4"
       }
     ]
+  },
+  {
+    "sha": "963c7e09bf681793869449a4e38c1a5ac973aaae",
+    "commit": {
+      "author": {
+        "name": "Ivan Levkivskyi",
+        "email": "levkivslyi@gmail.com",
+        "date": "2016-08-29T19:12:24Z"
+      },
+      "committer": {
+        "name": "Ivan Levkivskyi",
+        "email": "levkivslyi@gmail.com",
+        "date": "2016-08-29T19:12:24Z"
+      },
+      "message": "Response to comments",
+      "tree": {
+        "sha": "95c7142c73a137e2f6a00a1d04b4e9f73b18a83f",
+        "url": "https://api.github.com/repos/python/peps/git/trees/95c7142c73a137e2f6a00a1d04b4e9f73b18a83f"
+      },
+      "url": "https://api.github.com/repos/python/peps/git/commits/963c7e09bf681793869449a4e38c1a5ac973aaae",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/python/peps/commits/963c7e09bf681793869449a4e38c1a5ac973aaae",
+    "html_url": "https://github.com/python/peps/commit/963c7e09bf681793869449a4e38c1a5ac973aaae",
+    "comments_url": "https://api.github.com/repos/python/peps/commits/963c7e09bf681793869449a4e38c1a5ac973aaae/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "1da4dcc4f1a4bd085c3f133c929f9c2cae944c0c",
+        "url": "https://api.github.com/repos/python/peps/commits/1da4dcc4f1a4bd085c3f133c929f9c2cae944c0c",
+        "html_url": "https://github.com/python/peps/commit/1da4dcc4f1a4bd085c3f133c929f9c2cae944c0c"
+      }
+    ]
   }
 ]
