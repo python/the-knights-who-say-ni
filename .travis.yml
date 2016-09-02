@@ -2,8 +2,6 @@ language: python
 cache: pip
 python:
   - "3.5"
-# 4.1 fixes a bug that this project triggers.
-# This should be updated once 4.1 final is released.
 before_install:
   - pip install coverage codecov
 install:

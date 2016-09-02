@@ -30,6 +30,12 @@ class HerokuTests(unittest.TestCase):
         os.environ['GH_AUTH_TOKEN'] = auth_token
         self.assertEqual(self.server.contrib_auth_token(), auth_token)
 
+    def test_user_agent(self):
+        user_agent = 'Testing-Agent'
+        self.assertIsNone(self.server.user_agent())
+        os.environ['USER_AGENT'] = user_agent
+        self.assertEqual(self.server.user_agent(), user_agent)
+
     def test_log_exception(self):
         # Traceback and exception should be written to stderr.
         exc_type = NotImplementedError
