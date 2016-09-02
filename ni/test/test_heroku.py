@@ -32,6 +32,7 @@ class HerokuTests(unittest.TestCase):
 
     def test_user_agent(self):
         user_agent = 'Testing-Agent'
+        self.assertIsNone(self.server.user_agent())
         os.environ['USER_AGENT'] = user_agent
         self.assertEqual(self.server.user_agent(), user_agent)
 
