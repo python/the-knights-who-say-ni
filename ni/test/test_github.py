@@ -341,6 +341,19 @@ class NetworkingTests(util.TestCase):
         with mock.patch('ni.abc.session', fake_session):
             with self.assertRaises(client.HTTPException):
                 self.run_awaitable(contrib.post(url, data))
+        # Test no user-agent.
+        fake_server = util.FakeServerHost()
+        fake_server.user_agent_name = None
+        contrib = github.Host(fake_server, None, None)
+        data = {'hello': 'world'}
+        url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
+        fake_session = util.FakeSession()
+        with mock.patch('ni.abc.session', fake_session):
+            self.noException(contrib.post(url, data))
+        self.assertEqual(fake_session.url, url)
+        json_string = fake_session.data.decode('utf-8')
+        self.assertEqual(json.loads(json_string), data)
+        self.assertNotIn(hdrs.USER_AGENT, fake_session.headers)
 
     def test_delete(self):
         contrib = github.Host(util.FakeServerHost(), None, None)
