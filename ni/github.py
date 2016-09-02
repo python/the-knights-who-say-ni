@@ -136,6 +136,9 @@ class Host(abc.ContribHost):
         encoding = 'utf-8'
         encoded_json = json.dumps(payload).encode(encoding)
         headers = {hdrs.CONTENT_TYPE: 'application/json; charset=' + encoding}
+        user_agent = self.server.user_agent()
+        if user_agent:
+            headers[hdrs.USER_AGENT] = user_agent
         headers.update(self.auth_header())
         post_manager = abc.session().post(url, data=encoded_json,
                                           headers=headers)

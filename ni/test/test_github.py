@@ -328,6 +328,8 @@ class NetworkingTests(util.TestCase):
         self.assertEqual(fake_session.url, url)
         json_string = fake_session.data.decode('utf-8')
         self.assertEqual(json.loads(json_string), data)
+        user_agent = fake_session.headers[hdrs.USER_AGENT]
+        self.assertEqual(user_agent, util.FakeServerHost.user_agent_name)
         content_type = fake_session.headers[hdrs.CONTENT_TYPE]
         self.assertTrue(content_type.startswith('application/json'))
         self.assertIn('Authorization', fake_session.headers)

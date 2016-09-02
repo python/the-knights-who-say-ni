@@ -18,6 +18,10 @@ class Host(abc.ServerHost):
         return os.environ['GH_AUTH_TOKEN']
 
     @staticmethod
+    def user_agent():
+        return os.environ.get('USER_AGENT', None)
+
+    @staticmethod
     def log_exception(exc):
         """Log an exception and its traceback to stderr."""
         traceback.print_exception(type(exc), exc, exc.__traceback__,
