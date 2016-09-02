@@ -65,7 +65,6 @@ class ServerHost(abc.ABC):
     @abc.abstractmethod
     def user_agent(self):
         """Return the HTTP User-Agent string, or None."""
-        return None
 
     @abc.abstractmethod
     def log_exception(self, exc):
