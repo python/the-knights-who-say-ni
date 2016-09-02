@@ -157,16 +157,25 @@ class Host(abc.ContribHost):
         commits = await self.get(pull_request['commits_url'])
         # For each commit, get the author and committer.
         for commit in commits:
-            author = commit['author']['login']
-            if commit['commit']['author']['email'].lower() == GITHUB_EMAIL:
-                self.server.log("Ignoring GitHub-managed username: " + author)
-            else:
-                logins.add(author)
-            committer = commit['committer']['login']
-            if commit['commit']['committer']['email'].lower() == GITHUB_EMAIL:
-                self.server.log("Ignoring GitHub-managed username: " + committer)
-            else:
-                logins.add(committer)
+            author = commit['author']
+            # When the author is missing there seems to typically be a
+            # matching commit that **does** specify the author. (issue #56)
+            if author is not None:
+                author_login = author['login']
+                if commit['commit']['author']['email'].lower() == GITHUB_EMAIL:
+                    self.server.log("Ignoring GitHub-managed username: "
+                                    + author_login)
+                else:
+                    logins.add(author_login)
+
+            committer = commit['committer']
+            if committer is not None:
+                committer_login = committer['login']
+                if commit['commit']['committer']['email'].lower() == GITHUB_EMAIL:
+                    self.server.log("Ignoring GitHub-managed username: "
+                                    + committer_login)
+                else:
+                    logins.add(committer_login)
         return frozenset(logins)
 
     async def labels_url(self, label=None):
