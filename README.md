@@ -91,10 +91,10 @@ CLA).
    token to be used by the bot
 3. Set up the Heroku project to get the code for the bot
 
-### Adding to a GitHub repository
-1. Add the appropriate bot as a contributor to the repository
-   (with write privileges)
-2. Add the necessary labels to the repository
-   (the positive and negative labels)
+### Adding to a GitHub repository (Python-specific instructions)
+1. Add the appropriate labels (`CLA signed` and `CLA not signed`)
+2. Add the `PSF CLA enforcement` team to the project with `write` privileges
 3. Add the webhook
-   (only send pull request events)
+    1. Add the URL
+    2. Send `application/json` (the default)
+    3. Specify events to be `pull request` only (default is `push` which is unnecessary)
