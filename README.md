@@ -5,7 +5,6 @@ A bot to check if a contributor to a
 
 [![Build Status](https://travis-ci.org/python/the-knights-who-say-ni.svg?branch=master)](https://travis-ci.org/python/the-knights-who-say-ni)
 [![codecov.io](https://codecov.io/github/python/the-knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/python/the-knights-who-say-ni?branch=master)
-[![Updates](https://pyup.io/repos/github/python/the-knights-who-say-ni/shield.svg)](https://pyup.io/repos/github/python/the-knights-who-say-ni/)
 
 ## Why is this project necessary?
 A CLA is necessary to make sure that someone contributing to an
