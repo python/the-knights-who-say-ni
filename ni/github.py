@@ -121,17 +121,17 @@ class Host(ni_abc.ContribHost):
     def auth_header(self):
         return {'Authorization': 'token ' + self.server.contrib_auth_token()}
 
-    async def get(self, url: str):
+    async def get(self, client, url: str):
         """Make a GET request for some JSON data.
 
         Abstracted out for easy testing w/o requiring internet access.
         """
         headers = self.auth_header()
-        async with ni_abc.session().get(url, headers=headers) as response:
+        async with client.get(url, headers=headers) as response:
             self.check_response(response)
             return (await response.json())
 
-    async def post(self, url: str, payload):
+    async def post(self, client, url: str, payload):
         """Make a POST request with JSON data to a URL."""
         encoding = 'utf-8'
         encoded_json = json.dumps(payload).encode(encoding)
@@ -140,24 +140,24 @@ class Host(ni_abc.ContribHost):
         if user_agent:
             headers[hdrs.USER_AGENT] = user_agent
         headers.update(self.auth_header())
-        post_manager = ni_abc.session().post(url, data=encoded_json,
+        post_manager = client.post(url, data=encoded_json,
                                           headers=headers)
         async with post_manager as response:
             self.check_response(response)
 
-    async def delete(self, url):
+    async def delete(self, client, url):
         """Make a DELETE request to a URL."""
         headers = self.auth_header()
-        async with ni_abc.session().delete(url, headers=headers) as response:
+        async with client.delete(url, headers=headers) as response:
             self.check_response(response)
 
-    async def usernames(self):
+    async def usernames(self, client):
         """Return an iterable with all of the contributors' usernames."""
         pull_request = self.request['pull_request']
         # Start with the author of the pull request.
         logins = {pull_request['user']['login']}
         # Fetch the commit data for the pull request.
-        commits = await self.get(pull_request['commits_url'])
+        commits = await self.get(client, pull_request['commits_url'])
         # For each commit, get the author and committer.
         for commit in commits:
             author = commit['author']
@@ -181,11 +181,11 @@ class Host(ni_abc.ContribHost):
                     logins.add(committer_login)
         return frozenset(logins)
 
-    async def labels_url(self, label=None):
+    async def labels_url(self, client, label=None):
         """Construct the URL to the label."""
         if not hasattr(self, '_labels_url'):
             issue_url = self.request['pull_request']['issue_url']
-            issue_data = await self.get(issue_url)
+            issue_data = await self.get(client, issue_url)
             self._labels_url = issue_data['labels_url']
         quoted_label = ''
         if label is not None:
@@ -193,35 +193,35 @@ class Host(ni_abc.ContribHost):
         mapping = {'/name': quoted_label}
         return self._labels_url.format_map(mapping)
 
-    async def current_label(self):
+    async def current_label(self, client):
         """Return the current CLA-related label."""
-        labels_url = await self.labels_url()
+        labels_url = await self.labels_url(client)
         all_labels = map(operator.itemgetter('name'),
-                         await self.get(labels_url))
+                         await self.get(client, labels_url))
         cla_labels = (x for x in all_labels if x.startswith(LABEL_PREFIX))
         cla_labels = sorted(cla_labels)
         return cla_labels[0] if len(cla_labels) > 0 else None
 
-    async def set_label(self, status):
+    async def set_label(self, client, status):
         """Set the label on the pull request based on the status of the CLA."""
-        labels_url = await self.labels_url()
+        labels_url = await self.labels_url(client)
         if status == ni_abc.Status.signed:
-            await self.post(labels_url, [CLA_OK])
+            await self.post(client, labels_url, [CLA_OK])
             return CLA_OK
         else:
-            await self.post(labels_url, [NO_CLA])
+            await self.post(client, labels_url, [NO_CLA])
             return NO_CLA
 
-    async def remove_label(self):
+    async def remove_label(self, client):
         """Remove any CLA-related labels from the pull request."""
-        cla_label = await self.current_label()
+        cla_label = await self.current_label(client)
         if cla_label is None:
             return None
-        deletion_url = await self.labels_url(cla_label)
-        await self.delete(deletion_url)
+        deletion_url = await self.labels_url(client, cla_label)
+        await self.delete(client, deletion_url)
         return cla_label
 
-    async def comment(self, status):
+    async def comment(self, client, status):
         """Add an appropriate comment relating to the CLA status."""
         comments_url = self.request['pull_request']['comments_url']
         if status == ni_abc.Status.signed:
@@ -236,29 +236,29 @@ class Host(ni_abc.ContribHost):
         else:  # pragma: no cover
             # Should never be reached.
             raise TypeError("don't know how to handle {}".format(status))
-        await self.post(comments_url, {'body': message})
+        await self.post(client, comments_url, {'body': message})
         return message
 
-    async def update(self, status):
+    async def update(self, client, status):
         if self.event == PullRequestEvent.opened:
-            await self.set_label(status)
-            await self.comment(status)
+            await self.set_label(client, status)
+            await self.comment(client, status)
         elif self.event == PullRequestEvent.unlabeled:
             # The assumption is that a PR will almost always go from no CLA to
             # being cleared, so don't bug the user with what will probably
             # amount to a repeated message about lacking a CLA.
-            await self.set_label(status)
+            await self.set_label(client, status)
         elif self.event == PullRequestEvent.synchronize:
-            current_label = await self.current_label()
+            current_label = await self.current_label(client)
             if status == ni_abc.Status.signed:
                 if current_label != CLA_OK:
-                    await self.remove_label()
+                    await self.remove_label(client)
             elif current_label != NO_CLA:
-                    await self.remove_label()
+                    await self.remove_label(client)
                     # Since there is a chance a new person was added to a PR
                     # which caused the change in status, a comment on how to
                     # resolve the CLA issue is probably called for.
-                    await self.comment(status)
+                    await self.comment(client, status)
         else:  # pragma: no cover
             # Should never be reached.
             msg = 'do not know how to update a PR for {}'.format(self.event)

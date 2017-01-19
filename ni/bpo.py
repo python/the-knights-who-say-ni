@@ -11,11 +11,11 @@ class Host(ni_abc.CLAHost):
     def __init__(self, server):
         self.server = server
 
-    async def check(self, usernames):
+    async def check(self, aio_client, usernames):
         base_url = "http://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)
         self.server.log("Checking CLA status: " + url)
-        async with ni_abc.session().get(url) as response:
+        async with aio_client.get(url) as response:
             if response.status >= 300:
                 msg = 'unexpected response for {!r}: {}'.format(response.url,
                                                                 response.status)

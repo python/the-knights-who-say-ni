@@ -8,28 +8,6 @@ from aiohttp import web
 import enum
 
 
-loop = asyncio.get_event_loop
-
-
-def _session_factory():
-    """Create a closure to create/cache a client session.
-
-    A single session should be used for the life of the server, but creating it
-    should be minimized as it will trigger the creation of an event loop which
-    is not necessary during testing.
-    """
-    _session = None
-    def session():
-        nonlocal _session
-        if _session is None:
-            _session = aiohttp.ClientSession(loop=loop())
-        return _session
-
-    return session
-
-session = _session_factory()
-
-
 class ResponseExit(Exception):
 
     """Exception to raise when the current request should immediately exit."""
@@ -92,12 +70,12 @@ class ContribHost(abc.ABC):
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
 
     @abc.abstractmethod
-    async def usernames(self):
+    async def usernames(self, client):
         """Return an iterable of all the contributors' usernames."""
         return []  # pragma: no cover
 
     @abc.abstractmethod
-    async def update(self, status):
+    async def update(self, client, status):
         """Update the contribution with the status of CLA coverage."""
 
 
@@ -106,7 +84,7 @@ class CLAHost(abc.ABC):
     """Abstract base class for the CLA records platform."""
 
     @abc.abstractmethod
-    async def check(self, usernames):
+    async def check(self, client, usernames):
         """Check if all of the specified usernames have signed the CLA."""
         # While it would technically share more specific information if a
         # mapping of {username: Status} was returned, the vast majority of

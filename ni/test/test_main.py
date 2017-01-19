@@ -14,7 +14,7 @@ class FakeCLAHost(ni_abc.CLAHost):
     def __init__(self, status=None):
         self._status = status
 
-    async def check(self, usernames):
+    async def check(self, client, usernames):
         """Check if all of the specified usernames have signed the CLA."""
         self.usernames = usernames
         return self._status
@@ -38,11 +38,11 @@ class FakeContribHost(ni_abc.ContribHost):
             raise self._raise
         return self
 
-    async def usernames(self):
+    async def usernames(self, client):
         """Return an iterable of all the contributors' usernames."""
         return self._usernames
 
-    async def update(self, status):
+    async def update(self, client, status):
         """Update the contribution with the status of CLA coverage."""
         self.status = status
 
@@ -58,7 +58,7 @@ class HandlerTest(util.TestCase):
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
-            responder = __main__.handler(server, cla)
+            responder = __main__.handler(util.FakeSession, server, cla)
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
         self.assertEqual(cla.usernames, usernames)
@@ -73,7 +73,7 @@ class HandlerTest(util.TestCase):
                                          text=text)
         contrib = FakeContribHost(raise_=response_exit)
         with mock.patch('ni.__main__.ContribHost', contrib):
-            responder = __main__.handler(server, cla)
+            responder = __main__.handler(util.FakeSession, server, cla)
             response = self.run_awaitable(responder(util.FakeRequest()))
         self.assertEqual(response.status, http.HTTPStatus.FOUND)
         self.assertEqual(response.text, text)
@@ -85,7 +85,7 @@ class HandlerTest(util.TestCase):
         exc = Exception('test')
         contrib = FakeContribHost(raise_=exc)
         with mock.patch('ni.__main__.ContribHost', contrib):
-            responder = __main__.handler(server, cla)
+            responder = __main__.handler(util.FakeSession, server, cla)
             response = self.run_awaitable(responder(util.FakeRequest()))
         self.assertEqual(response.status, http.HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(server.logged_exc, exc)
