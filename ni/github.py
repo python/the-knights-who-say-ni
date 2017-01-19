@@ -18,16 +18,27 @@ EASTEREGG_PROBABILITY = 0.01
 
 NO_CLA_TEMPLATE = """Hello, and thanks for your contribution!
 
+I'm a bot set up to make sure that the project can legally accept your \
+contribution by verifying you have signed the \
+[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
+(CLA).
+
 {body}
 
-Once you have done everything that's needed, please reply here and someone \
-will verify everything is in order.
+Thanks again to your contribution and we look forward to looking at it!
 """
 
-NO_CLA_BODY = """Unfortunately our records indicate you have not signed a \
-[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
-(CLA). For legal reasons we need you to sign this before we can look at your \
-contribution."""
+NO_CLA_BODY = """Unfortunately our records indicate you have not signed the CLA. \
+For legal reasons we need you to sign this before we can look at your \
+contribution. Please follow these steps to rectify the issue:
+
+1. Sign the [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
+2. Wait at least a day and then check "Your Details" on \
+[bugs.python.org](https://bugs.python.org/) to see if your account has been \
+marked as having signed the CLA \
+(the delay is due to a person having to manually check your signed CLA)
+3. Reply here saying you have completed the above steps
+"""
 
 NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
 
@@ -35,16 +46,21 @@ We also demand... [A SHRUBBERY!](https://www.youtube.com/watch?v=zIV4poUZAQo)
 """
 
 NO_USERNAME_BODY = """Unfortunately we couldn't find an account corresponding \
-to your GitHub username at [bugs.python.org](http://bugs.python.org/) \
-(b.p.o). If you don't already have an account at b.p.o, please \
-[create one](http://bugs.python.org/user?@template=register) and make sure to \
-add your GitHub username. If you do already have an account at b.p.o then \
-please go there and under "Your Details" add your GitHub username.
+to your GitHub username on [bugs.python.org](http://bugs.python.org/) \
+(b.p.o) to verify you have signed the CLA. This is necessary for legal reasons \
+before we can look at your contribution. Please follow these steps to help \
+rectify the issue:
 
-And in case you haven't already, please make sure to sign the \
-[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
-(CLA); we can't legally look at your contribution until you have signed the \
-CLA."""
+1. If you don't have an account on b.p.o, please [create one](http://bugs.python.org/user?@template=register)
+2. Make sure your GitHub username is listed in "Your Details" at b.p.o
+3. If you have not already done so, please sign the \
+[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
+4. If you just signed the CLA, please wait at least a day and then check "Your Details" on \
+[bugs.python.org](https://bugs.python.org/) to see if your account has been \
+marked as having signed the CLA \
+(the delay is due to a person having to manually check your signed CLA)
+5. Reply here saying you have completed the above steps
+"""
 
 
 GITHUB_EMAIL = 'noreply@github.com'.lower()  # Normalized for easy comparisons.
