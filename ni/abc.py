@@ -80,12 +80,13 @@ class ContribHost(abc.ABC):
     """Abstract base class for the contribution/pull request platform."""
 
     @property
-    @abc.abstractstaticmethod
-    def route():
+    @abc.abstractmethod
+    def route(self):
         return '*', '/'  # pragma: no cover
 
-    @abc.abstractclassmethod
-    async def process(self, server, request):
+    @classmethod
+    @abc.abstractmethod
+    async def process(cls, server, request):
         """Process a request into a contribution."""
         # This method exists because __init__() cannot be a coroutine.
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
