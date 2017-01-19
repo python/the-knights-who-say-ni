@@ -9,7 +9,7 @@ from urllib import parse
 
 from aiohttp import hdrs, web
 
-from .. import abc
+from .. import abc as ni_abc
 from .. import github
 from . import util
 
@@ -65,7 +65,7 @@ class GitHubTests(util.TestCase):
         # Only accept 'application/json'.
         # https://developer.github.com/webhooks/creating/#content-type
         request = util.FakeRequest(content_type='application/x-www-form-urlencoded')
-        with self.assertRaises(abc.ResponseExit) as cm:
+        with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(), request))
         self.assertEqual(cm.exception.response.status, 415)
 
@@ -73,7 +73,7 @@ class GitHubTests(util.TestCase):
         # GitHub can ping a webhook to verify things are set up.
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
-        with self.assertRaises(abc.ResponseExit) as cm:
+        with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                    util.FakeRequest(payload)))
         self.assertEqual(cm.exception.response.status, 200)
@@ -86,7 +86,7 @@ class GitHubTests(util.TestCase):
                 continue
             payload = {'action': event.value}
             request = util.FakeRequest(payload)
-            with self.assertRaises(abc.ResponseExit) as cm:
+            with self.assertRaises(ni_abc.ResponseExit) as cm:
                 self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                        request))
             self.assertEqual(cm.exception.response.status, 204)
@@ -109,7 +109,7 @@ class GitHubTests(util.TestCase):
         unlabeled_example_other = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_other['label']['name'] = 'missing something or other'
         request = util.FakeRequest(unlabeled_example_other)
-        with self.assertRaises(abc.ResponseExit) as cm:
+        with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                    request))
         self.assertEqual(cm.exception.response.status, 204)
@@ -191,12 +191,12 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        label = self.run_awaitable(contrib.set_label(abc.Status.signed))
+        label = self.run_awaitable(contrib.set_label(ni_abc.Status.signed))
         self.assertEqual(label, github.CLA_OK)
         network[('POST', self.labels_url)] = [github.NO_CLA]
-        label = self.run_awaitable(contrib.set_label(abc.Status.not_signed))
+        label = self.run_awaitable(contrib.set_label(ni_abc.Status.not_signed))
         self.assertEqual(label, github.NO_CLA)
-        self.run_awaitable(contrib.set_label(abc.Status.username_not_found))
+        self.run_awaitable(contrib.set_label(ni_abc.Status.username_not_found))
         self.assertEqual(label, github.NO_CLA)
 
     def test_remove_label(self):
@@ -222,18 +222,18 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        message = self.run_awaitable(contrib.comment(abc.Status.signed))
+        message = self.run_awaitable(contrib.comment(ni_abc.Status.signed))
         self.assertIsNone(message)
         expected = {'body':
                     github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)}
         network[('POST', self.comments_url)] = expected
-        message = self.run_awaitable(contrib.comment(abc.Status.not_signed))
+        message = self.run_awaitable(contrib.comment(ni_abc.Status.not_signed))
         self.assertEqual(message, expected['body'])
         expected['body'] = github.NO_CLA_TEMPLATE.format(
                 body=github.NO_USERNAME_BODY)
         network[('POST', self.comments_url)] = expected
         message = self.run_awaitable(
-                contrib.comment(abc.Status.username_not_found))
+                contrib.comment(ni_abc.Status.username_not_found))
         self.assertEqual(expected['body'], message)
 
     def test_update_opened(self):
@@ -246,7 +246,7 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        self.noException(contrib.update(abc.Status.not_signed))
+        self.noException(contrib.update(ni_abc.Status.not_signed))
 
     def test_update_unlabeled(self):
         # Adding CLA status to a PR that just lost its CLA label.
@@ -256,7 +256,7 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.unlabeled,
                               self.unlabeled_example,
                               network=network)
-        self.noException(contrib.update(abc.Status.signed))
+        self.noException(contrib.update(ni_abc.Status.signed))
 
     def test_update_synchronize(self):
         # Update the PR after it's synchronized.
@@ -267,32 +267,32 @@ class GitHubTests(util.TestCase):
                               network=network)
         # CLA signed and already labeled as such.
         network[('GET', self.labels_url)] = self.labels_example
-        self.noException(contrib.update(abc.Status.signed))
+        self.noException(contrib.update(ni_abc.Status.signed))
         # CLA signed, but not labeled as such.
         network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
         deletion_url = self.run_awaitable(contrib.labels_url(github.NO_CLA))
         network[('DELETE', deletion_url)] = [github.NO_CLA]
-        self.noException(contrib.update(abc.Status.signed))
+        self.noException(contrib.update(ni_abc.Status.signed))
         # CLA not signed and already labeled as such.
         network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
-        self.noException(contrib.update(abc.Status.not_signed))
+        self.noException(contrib.update(ni_abc.Status.not_signed))
         # CLA not signed, but currently labeled as such.
         network[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
         deletion_url = self.run_awaitable(contrib.labels_url(github.CLA_OK))
         network[('DELETE', deletion_url)] = [github.CLA_OK]
         comment = github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)
         network[('POST', self.comments_url)] = {'body': comment}
-        self.noException(contrib.update(abc.Status.not_signed))
+        self.noException(contrib.update(ni_abc.Status.not_signed))
         # No GitHub username, but already labeled as no CLA.
         network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
-        self.noException(contrib.update(abc.Status.username_not_found))
+        self.noException(contrib.update(ni_abc.Status.username_not_found))
         # No GitHub username, but labeled as signed.
         network[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
         deletion_url = self.run_awaitable(contrib.labels_url(github.CLA_OK))
         network[('DELETE', deletion_url)] = [github.CLA_OK]
         comment = github.NO_CLA_TEMPLATE.format(body=github.NO_USERNAME_BODY)
         network[('POST', self.comments_url)] = {'body': comment}
-        self.noException(contrib.update(abc.Status.username_not_found))
+        self.noException(contrib.update(ni_abc.Status.username_not_found))
 
 
 class NetworkingTests(util.TestCase):

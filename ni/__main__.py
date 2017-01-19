@@ -3,7 +3,7 @@ import http
 
 from aiohttp import web
 
-from . import abc
+from . import abc as ni_abc
 from . import CLAHost
 from . import ContribHost
 from . import ServerHost
@@ -23,7 +23,7 @@ def handler(server, cla_records):
             # contribution a work item and return an HTTP 202 response.
             await contribution.update(cla_status)
             return web.Response(status=http.HTTPStatus.OK)
-        except abc.ResponseExit as exc:
+        except ni_abc.ResponseExit as exc:
             return exc.response
         except Exception as exc:
             server.log_exception(exc)
@@ -34,9 +34,9 @@ def handler(server, cla_records):
 
 
 if __name__ == '__main__':
-    app = web.Application(loop=abc.loop())
+    app = web.Application(loop=ni_abc.loop())
     async def cleanup(app):
-        await abc.session().close()
+        await ni_abc.session().close()
     app.on_cleanup.append(cleanup)
     server = ServerHost()
     cla_records = CLAHost(server)
