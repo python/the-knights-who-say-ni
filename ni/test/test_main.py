@@ -3,11 +3,11 @@ import unittest
 from unittest import mock
 
 from .. import __main__
-from .. import abc
+from .. import abc as ni_abc
 from . import util
 
 
-class FakeCLAHost(abc.CLAHost):
+class FakeCLAHost(ni_abc.CLAHost):
 
     """Abstract base class for the CLA records platform."""
 
@@ -20,7 +20,7 @@ class FakeCLAHost(abc.CLAHost):
         return self._status
 
 
-class FakeContribHost(abc.ContribHost):
+class FakeContribHost(ni_abc.ContribHost):
 
     """Abstract base class for the contribution/pull request platform."""
 
@@ -52,7 +52,7 @@ class HandlerTest(util.TestCase):
     def test_response(self):
         # Success case.
         usernames = ['brettcannon']
-        status = abc.Status.signed
+        status = ni_abc.Status.signed
         server = util.FakeServerHost()
         cla = FakeCLAHost(status)
         contrib = FakeContribHost(usernames)
@@ -69,7 +69,7 @@ class HandlerTest(util.TestCase):
         server = util.FakeServerHost()
         cla = FakeCLAHost()
         text = 'test'
-        response_exit = abc.ResponseExit(status=http.HTTPStatus.FOUND,
+        response_exit = ni_abc.ResponseExit(status=http.HTTPStatus.FOUND,
                                          text=text)
         contrib = FakeContribHost(raise_=response_exit)
         with mock.patch('ni.__main__.ContribHost', contrib):

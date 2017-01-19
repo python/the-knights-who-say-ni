@@ -1,10 +1,10 @@
 from http import client
 import json
 
-from . import abc
+from . import abc as ni_abc
 
 
-class Host(abc.CLAHost):
+class Host(ni_abc.CLAHost):
 
     """CLA record hosting at bugs.python.org."""
 
@@ -15,7 +15,7 @@ class Host(abc.CLAHost):
         base_url = "http://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)
         self.server.log("Checking CLA status: " + url)
-        async with abc.session().get(url) as response:
+        async with ni_abc.session().get(url) as response:
             if response.status >= 300:
                 msg = 'unexpected response for {!r}: {}'.format(response.url,
                                                                 response.status)
@@ -33,8 +33,8 @@ class Host(abc.CLAHost):
             raise TypeError("unexpected value in " + str(status_results))
 
         if all(status_results):
-            return abc.Status.signed
+            return ni_abc.Status.signed
         elif any(value is None for value in status_results):
-            return abc.Status.username_not_found
+            return ni_abc.Status.username_not_found
         else:
-            return abc.Status.not_signed
+            return ni_abc.Status.not_signed

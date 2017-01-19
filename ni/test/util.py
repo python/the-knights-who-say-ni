@@ -3,7 +3,7 @@ import unittest
 
 from aiohttp import web
 
-from .. import abc
+from .. import abc as ni_abc
 
 
 class FakeRequest:
@@ -75,7 +75,7 @@ class FakeSession:
         return self
 
 
-class FakeServerHost(abc.ServerHost):
+class FakeServerHost(ni_abc.ServerHost):
 
     port = 1234
     auth_token = 'some_auth_token'
@@ -106,9 +106,9 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        session = abc.session()
+        session = ni_abc.session()
         session.close()
-        abc.session = abc._session_factory()
+        ni_abc.session = ni_abc._session_factory()
         super().tearDownClass()
 
     def run_awaitable(self, coroutine, *, loop=None):

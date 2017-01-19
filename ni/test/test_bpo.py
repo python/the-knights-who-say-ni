@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 
 from . import util
-from .. import abc
+from .. import abc as ni_abc
 from .. import bpo
 
 
@@ -25,7 +25,7 @@ class OfflineTests(util.TestCase):
         fake_session = util.FakeSession(response=fake_response)
         with mock.patch('ni.abc.session', fake_session):
             result = self.run_awaitable(host.check(['brettcannon']))
-        self.assertEqual(result, abc.Status.signed)
+        self.assertEqual(result, ni_abc.Status.signed)
 
     def test_missing_data(self):
         host = bpo.Host(util.FakeServerHost())
@@ -56,20 +56,20 @@ class NetworkTests(util.TestCase):
 
     def test_signed(self):
         result = self.run_awaitable(self.bpo.check([self.signed_cla]),
-                                    loop=abc.loop())
-        self.assertEqual(result, abc.Status.signed)
+                                    loop=ni_abc.loop())
+        self.assertEqual(result, ni_abc.Status.signed)
 
     def test_not_signed(self):
         usernames = [self.signed_cla, self.not_signed_cla]
         result = self.run_awaitable(self.bpo.check(usernames),
-                                    loop=abc.loop())
-        self.assertEqual(result, abc.Status.not_signed)
+                                    loop=ni_abc.loop())
+        self.assertEqual(result, ni_abc.Status.not_signed)
 
     def test_missing_username(self):
         usernames = [self.signed_cla, 'fdsfdsdooisadfsadnfasdfdsf']
         result = self.run_awaitable(self.bpo.check(usernames),
-                                    loop=abc.loop())
-        self.assertEqual(result, abc.Status.username_not_found)
+                                    loop=ni_abc.loop())
+        self.assertEqual(result, ni_abc.Status.username_not_found)
 
 
 if __name__ == '__main__':

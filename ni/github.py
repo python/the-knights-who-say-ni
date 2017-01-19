@@ -8,7 +8,7 @@ from urllib import parse
 
 from aiohttp import hdrs
 
-from . import abc
+from . import abc as ni_abc
 
 
 LABEL_PREFIX = 'CLA '
@@ -63,7 +63,7 @@ class PullRequestEvent(enum.Enum):
     synchronize = "synchronize"
 
 
-class Host(abc.ContribHost):
+class Host(ni_abc.ContribHost):
 
     """Implement a webhook for GitHub pull requests."""
 
@@ -86,22 +86,22 @@ class Host(abc.ContribHost):
         if request.content_type != 'application/json':
             msg = ('can only accept application/json, '
                    'not {}').format(request.content_type)
-            raise abc.ResponseExit(
+            raise ni_abc.ResponseExit(
                     status=http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE, text=msg)
 
         payload = await request.json()
         if 'zen' in payload:
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
-            raise abc.ResponseExit(status=http.HTTPStatus.OK)
+            raise ni_abc.ResponseExit(status=http.HTTPStatus.OK)
         elif payload['action'] not in cls._useful_actions:
-            raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
+            raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] == PullRequestEvent.opened.value:
             return cls(server, PullRequestEvent.opened, payload)
         elif payload['action'] == PullRequestEvent.unlabeled.value:
             label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
-                raise abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
+                raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
             return cls(server, PullRequestEvent.unlabeled, payload)
         elif payload['action'] == PullRequestEvent.synchronize.value:
             return cls(server, PullRequestEvent.synchronize, payload)
@@ -127,7 +127,7 @@ class Host(abc.ContribHost):
         Abstracted out for easy testing w/o requiring internet access.
         """
         headers = self.auth_header()
-        async with abc.session().get(url, headers=headers) as response:
+        async with ni_abc.session().get(url, headers=headers) as response:
             self.check_response(response)
             return (await response.json())
 
@@ -140,7 +140,7 @@ class Host(abc.ContribHost):
         if user_agent:
             headers[hdrs.USER_AGENT] = user_agent
         headers.update(self.auth_header())
-        post_manager = abc.session().post(url, data=encoded_json,
+        post_manager = ni_abc.session().post(url, data=encoded_json,
                                           headers=headers)
         async with post_manager as response:
             self.check_response(response)
@@ -148,7 +148,7 @@ class Host(abc.ContribHost):
     async def delete(self, url):
         """Make a DELETE request to a URL."""
         headers = self.auth_header()
-        async with abc.session().delete(url, headers=headers) as response:
+        async with ni_abc.session().delete(url, headers=headers) as response:
             self.check_response(response)
 
     async def usernames(self):
@@ -205,7 +205,7 @@ class Host(abc.ContribHost):
     async def set_label(self, status):
         """Set the label on the pull request based on the status of the CLA."""
         labels_url = await self.labels_url()
-        if status == abc.Status.signed:
+        if status == ni_abc.Status.signed:
             await self.post(labels_url, [CLA_OK])
             return CLA_OK
         else:
@@ -224,14 +224,14 @@ class Host(abc.ContribHost):
     async def comment(self, status):
         """Add an appropriate comment relating to the CLA status."""
         comments_url = self.request['pull_request']['comments_url']
-        if status == abc.Status.signed:
+        if status == ni_abc.Status.signed:
             return None
-        elif status == abc.Status.not_signed:
+        elif status == ni_abc.Status.not_signed:
             if random.random() < EASTEREGG_PROBABILITY:  # pragma: no cover
                 message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY_EASTEREGG)
             else:
                 message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY)
-        elif status == abc.Status.username_not_found:
+        elif status == ni_abc.Status.username_not_found:
             message = NO_CLA_TEMPLATE.format(body=NO_USERNAME_BODY)
         else:  # pragma: no cover
             # Should never be reached.
@@ -250,7 +250,7 @@ class Host(abc.ContribHost):
             await self.set_label(status)
         elif self.event == PullRequestEvent.synchronize:
             current_label = await self.current_label()
-            if status == abc.Status.signed:
+            if status == ni_abc.Status.signed:
                 if current_label != CLA_OK:
                     await self.remove_label()
             elif current_label != NO_CLA:

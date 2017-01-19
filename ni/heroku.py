@@ -2,10 +2,10 @@ import os
 import sys
 import traceback
 
-from . import abc
+from . import abc as ni_abc
 
 
-class Host(abc.ServerHost):
+class Host(ni_abc.ServerHost):
 
     """Server hosting on Heroku."""
 
