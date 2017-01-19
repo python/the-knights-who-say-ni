@@ -22,14 +22,14 @@ class OfflineHost(github.Host):
         super().__init__(*args, **kwargs)
         self._network = network
 
-    async def get(self, url):
+    async def get(self, client, url):
         return self._network[('GET', url)]
 
-    async def post(self, url, payload):
+    async def post(self, client, url, payload):
         expected = self._network[('POST', url)]
         assert expected == payload, '{!r} != {!r}'.format(payload, expected)
 
-    async def delete(self, url):
+    async def delete(self, client, url):
         assert self._network[('DELETE', url)]
 
 
@@ -139,7 +139,7 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        got = self.run_awaitable(contrib.usernames())
+        got = self.run_awaitable(contrib.usernames(util.FakeSession()))
         want = {'brettcannon', 'rbtcollins-author', 'rbtcollins-committer',
                 'dstufft-author', 'dstufft-committer'}
         self.assertEqual(got, frozenset(want))
@@ -151,11 +151,12 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        got = self.run_awaitable(contrib.labels_url())
+        got = self.run_awaitable(contrib.labels_url(util.FakeSession()))
         want = self.labels_url.format_map({'/name': ''})
         self.assertEqual(got, want)
 
-        got = self.run_awaitable(contrib.labels_url(github.CLA_OK))
+        got = self.run_awaitable(contrib.labels_url(util.FakeSession(),
+                                                    github.CLA_OK))
         label = parse.quote(github.CLA_OK)
         want = '{}/{}'.format(self.labels_url, label)
         self.assertEqual(got, want)
@@ -169,16 +170,16 @@ class GitHubTests(util.TestCase):
                               network=network)
         # No label set.
         network[('GET', self.labels_url)] = []
-        label = self.run_awaitable(contrib.current_label())
+        label = self.run_awaitable(contrib.current_label(util.FakeSession()))
         self.assertIsNone(label)
         # One CLA label set.
         network[('GET', self.labels_url)] = self.labels_example
-        label = self.run_awaitable(contrib.current_label())
+        label = self.run_awaitable(contrib.current_label(util.FakeSession()))
         self.assertEqual(label, github.CLA_OK)
         # Two CLA labels set (error case).
         network[('GET', self.labels_url)] = [{'name': github.CLA_OK},
                                              {'name': github.NO_CLA}]
-        label = self.run_awaitable(contrib.current_label())
+        label = self.run_awaitable(contrib.current_label(util.FakeSession()))
         # Just don't blow up.
         self.assertIsNotNone(label)
 
@@ -191,12 +192,15 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        label = self.run_awaitable(contrib.set_label(ni_abc.Status.signed))
+        label = self.run_awaitable(contrib.set_label(util.FakeSession(),
+                                                     ni_abc.Status.signed))
         self.assertEqual(label, github.CLA_OK)
         network[('POST', self.labels_url)] = [github.NO_CLA]
-        label = self.run_awaitable(contrib.set_label(ni_abc.Status.not_signed))
+        label = self.run_awaitable(contrib.set_label(util.FakeSession(),
+                                                     ni_abc.Status.not_signed))
         self.assertEqual(label, github.NO_CLA)
-        self.run_awaitable(contrib.set_label(ni_abc.Status.username_not_found))
+        self.run_awaitable(contrib.set_label(util.FakeSession(),
+                                             ni_abc.Status.username_not_found))
         self.assertEqual(label, github.NO_CLA)
 
     def test_remove_label(self):
@@ -209,10 +213,10 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example,
                               network=network)
-        deleted = self.run_awaitable(contrib.remove_label())
+        deleted = self.run_awaitable(contrib.remove_label(util.FakeSession()))
         self.assertEqual(deleted, github.CLA_OK)
         network[('GET', self.labels_url)] = []
-        deleted = self.run_awaitable(contrib.remove_label())
+        deleted = self.run_awaitable(contrib.remove_label(util.FakeSession()))
         self.assertIsNone(deleted)
 
     def test_comment(self):
@@ -222,18 +226,20 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        message = self.run_awaitable(contrib.comment(ni_abc.Status.signed))
+        message = self.run_awaitable(contrib.comment(util.FakeSession(),
+                                                     ni_abc.Status.signed))
         self.assertIsNone(message)
         expected = {'body':
                     github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)}
         network[('POST', self.comments_url)] = expected
-        message = self.run_awaitable(contrib.comment(ni_abc.Status.not_signed))
+        message = self.run_awaitable(contrib.comment(util.FakeSession(),
+                                                     ni_abc.Status.not_signed))
         self.assertEqual(message, expected['body'])
         expected['body'] = github.NO_CLA_TEMPLATE.format(
                 body=github.NO_USERNAME_BODY)
         network[('POST', self.comments_url)] = expected
-        message = self.run_awaitable(
-                contrib.comment(ni_abc.Status.username_not_found))
+        message = self.run_awaitable(contrib.comment(util.FakeSession(),
+                                                     ni_abc.Status.username_not_found))
         self.assertEqual(expected['body'], message)
 
     def test_update_opened(self):
@@ -246,7 +252,7 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.opened,
                               self.opened_example,
                               network=network)
-        self.noException(contrib.update(ni_abc.Status.not_signed))
+        self.noException(contrib.update(util.FakeSession(), ni_abc.Status.not_signed))
 
     def test_update_unlabeled(self):
         # Adding CLA status to a PR that just lost its CLA label.
@@ -256,7 +262,7 @@ class GitHubTests(util.TestCase):
                               github.PullRequestEvent.unlabeled,
                               self.unlabeled_example,
                               network=network)
-        self.noException(contrib.update(ni_abc.Status.signed))
+        self.noException(contrib.update(util.FakeSession(), ni_abc.Status.signed))
 
     def test_update_synchronize(self):
         # Update the PR after it's synchronized.
@@ -267,32 +273,38 @@ class GitHubTests(util.TestCase):
                               network=network)
         # CLA signed and already labeled as such.
         network[('GET', self.labels_url)] = self.labels_example
-        self.noException(contrib.update(ni_abc.Status.signed))
+        self.noException(contrib.update(util.FakeSession(), ni_abc.Status.signed))
         # CLA signed, but not labeled as such.
         network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
-        deletion_url = self.run_awaitable(contrib.labels_url(github.NO_CLA))
+        deletion_url = self.run_awaitable(
+                contrib.labels_url(util.FakeSession(), github.NO_CLA))
         network[('DELETE', deletion_url)] = [github.NO_CLA]
-        self.noException(contrib.update(ni_abc.Status.signed))
+        self.noException(contrib.update(util.FakeSession(), ni_abc.Status.signed))
         # CLA not signed and already labeled as such.
         network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
-        self.noException(contrib.update(ni_abc.Status.not_signed))
+        self.noException(contrib.update(util.FakeSession(), ni_abc.Status.not_signed))
         # CLA not signed, but currently labeled as such.
         network[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
-        deletion_url = self.run_awaitable(contrib.labels_url(github.CLA_OK))
+        deletion_url = self.run_awaitable(
+                contrib.labels_url(util.FakeSession(),github.CLA_OK))
         network[('DELETE', deletion_url)] = [github.CLA_OK]
         comment = github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)
         network[('POST', self.comments_url)] = {'body': comment}
-        self.noException(contrib.update(ni_abc.Status.not_signed))
+        self.noException(contrib.update(util.FakeSession(),
+                                        ni_abc.Status.not_signed))
         # No GitHub username, but already labeled as no CLA.
         network[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
-        self.noException(contrib.update(ni_abc.Status.username_not_found))
+        self.noException(contrib.update(util.FakeSession(),
+                                        ni_abc.Status.username_not_found))
         # No GitHub username, but labeled as signed.
         network[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
-        deletion_url = self.run_awaitable(contrib.labels_url(github.CLA_OK))
+        deletion_url = self.run_awaitable(
+                contrib.labels_url(util.FakeSession(), github.CLA_OK))
         network[('DELETE', deletion_url)] = [github.CLA_OK]
         comment = github.NO_CLA_TEMPLATE.format(body=github.NO_USERNAME_BODY)
         network[('POST', self.comments_url)] = {'body': comment}
-        self.noException(contrib.update(ni_abc.Status.username_not_found))
+        self.noException(contrib.update(util.FakeSession(),
+                                        ni_abc.Status.username_not_found))
 
 
 class NetworkingTests(util.TestCase):
@@ -304,8 +316,7 @@ class NetworkingTests(util.TestCase):
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         payload = {'hello': 'world'}
         fake_session = util.FakeSession(data=payload)
-        with mock.patch('ni.abc.session', fake_session):
-            returned = self.noException(contrib.get(url))
+        returned = self.noException(contrib.get(fake_session, url))
         self.assertEqual(payload, returned)
         self.assertEqual(fake_session.url, url)
         self.assertIn('Authorization', fake_session.headers)
@@ -314,17 +325,15 @@ class NetworkingTests(util.TestCase):
         # Test making a failed request.
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
-        with mock.patch('ni.abc.session', fake_session):
-            with self.assertRaises(client.HTTPException):
-                self.run_awaitable(contrib.get(url))
+        with self.assertRaises(client.HTTPException):
+            self.run_awaitable(contrib.get(fake_session, url))
 
     def test_post(self):
         contrib = github.Host(util.FakeServerHost(), None, None)
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         fake_session = util.FakeSession()
-        with mock.patch('ni.abc.session', fake_session):
-            self.noException(contrib.post(url, data))
+        self.noException(contrib.post(fake_session, url, data))
         self.assertEqual(fake_session.url, url)
         json_string = fake_session.data.decode('utf-8')
         self.assertEqual(json.loads(json_string), data)
@@ -338,9 +347,8 @@ class NetworkingTests(util.TestCase):
         # Test making a failed request.
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
-        with mock.patch('ni.abc.session', fake_session):
-            with self.assertRaises(client.HTTPException):
-                self.run_awaitable(contrib.post(url, data))
+        with self.assertRaises(client.HTTPException):
+            self.run_awaitable(contrib.post(fake_session, url, data))
         # Test no user-agent.
         fake_server = util.FakeServerHost()
         fake_server.user_agent_name = None
@@ -348,8 +356,7 @@ class NetworkingTests(util.TestCase):
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         fake_session = util.FakeSession()
-        with mock.patch('ni.abc.session', fake_session):
-            self.noException(contrib.post(url, data))
+        self.noException(contrib.post(fake_session, url, data))
         self.assertEqual(fake_session.url, url)
         json_string = fake_session.data.decode('utf-8')
         self.assertEqual(json.loads(json_string), data)
@@ -360,8 +367,7 @@ class NetworkingTests(util.TestCase):
         data = {'hello': 'world'}
         url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
         fake_session = util.FakeSession()
-        with mock.patch('ni.abc.session', fake_session):
-            self.noException(contrib.delete(url))
+        self.noException(contrib.delete(fake_session, url))
         self.assertEqual(fake_session.url, url)
         self.assertIn('Authorization', fake_session.headers)
         self.assertEqual(fake_session.headers['Authorization'],
@@ -369,6 +375,5 @@ class NetworkingTests(util.TestCase):
         # Test making a failed request.
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
-        with mock.patch('ni.abc.session', fake_session):
-            with self.assertRaises(client.HTTPException):
-                self.run_awaitable(contrib.delete(url))
+        with self.assertRaises(client.HTTPException):
+            self.run_awaitable(contrib.delete(fake_session, url))

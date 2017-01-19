@@ -104,13 +104,6 @@ class FakeServerHost(ni_abc.ServerHost):
 
 class TestCase(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        session = ni_abc.session()
-        session.close()
-        ni_abc.session = ni_abc._session_factory()
-        super().tearDownClass()
-
     def run_awaitable(self, coroutine, *, loop=None):
         if loop is None:
             loop = asyncio.new_event_loop()
