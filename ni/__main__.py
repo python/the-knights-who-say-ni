@@ -2,6 +2,7 @@
 import asyncio
 import http
 
+import aiohttp
 from aiohttp import web
 
 from . import abc as ni_abc
