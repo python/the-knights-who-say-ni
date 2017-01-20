@@ -1,6 +1,6 @@
 import http
 import unittest
-from unittest import mock
+import unittest.mock as mock
 
 from .. import __main__
 from .. import abc as ni_abc

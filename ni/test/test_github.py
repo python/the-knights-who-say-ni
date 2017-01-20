@@ -4,7 +4,6 @@ from http import client
 import json
 import pathlib
 import unittest
-from unittest import mock
 from urllib import parse
 
 from aiohttp import hdrs, web

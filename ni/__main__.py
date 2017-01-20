@@ -1,6 +1,7 @@
 """Implement a server to check if a contribution is covered by a CLA(s)."""
 import asyncio
 import http
+from typing import Awaitable, Callable
 
 import aiohttp
 from aiohttp import web
@@ -11,9 +12,10 @@ from . import ContribHost
 from . import ServerHost
 
 
-def handler(create_client, server, cla_records):
+def handler(create_client, server: ni_abc.ServerHost,
+            cla_records: ni_abc.CLAHost) -> Callable[[web.Request], Awaitable[web.Response]]:
     """Create a closure to handle requests from the contribution host."""
-    async def respond(request):
+    async def respond(request: web.Request) -> web.Response:
         """Handle a webhook trigger from the contribution host."""
         async with create_client() as client:
             try:

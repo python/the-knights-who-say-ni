@@ -2,7 +2,6 @@ import asyncio
 from http import client
 import json
 import unittest
-from unittest import mock
 
 import aiohttp
 
@@ -48,7 +47,7 @@ class OfflineTests(util.TestCase):
 class SessionOnDemand:
 
     """Role session creation and HTTP requesting in a single object.
-    
+
     aiohttp raises a warning if a ClientSession is created outside of a
     coroutine. To avoid this issue, this class acts as an async context
     manager which both creates a session and makes a GET request.

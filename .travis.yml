@@ -3,9 +3,11 @@ cache: pip
 python:
   - "3.6"
 before_install:
-  - pip install coverage codecov
+  - pip install coverage codecov mypy-lang typed_ast
 install:
   - pip install -r requirements.txt
-script: coverage run --branch -m unittest discover -t . -s ni/test/
+script:
+  - coverage run --branch -m unittest discover -t . -s ni/test/
+  - ./mypy.sh
 after_success:
   - codecov

@@ -1,6 +1,7 @@
 import os
 import sys
 import traceback
+from typing import Optional
 
 from . import abc as ni_abc
 
@@ -10,24 +11,22 @@ class Host(ni_abc.ServerHost):
     """Server hosting on Heroku."""
 
     @staticmethod
-    def port():
+    def port() -> int:
         return int(os.environ['PORT'])
 
     @staticmethod
-    def contrib_auth_token():
+    def contrib_auth_token() -> str:
         return os.environ['GH_AUTH_TOKEN']
 
     @staticmethod
-    def user_agent():
-        return os.environ.get('USER_AGENT', None)
+    def user_agent() -> Optional[str]:
+        return os.environ.get('USER_AGENT')
 
-    @staticmethod
-    def log_exception(exc):
+    def log_exception(self, exc: BaseException) -> None:
         """Log an exception and its traceback to stderr."""
         traceback.print_exception(type(exc), exc, exc.__traceback__,
                                   file=sys.stderr)
 
-    @staticmethod
-    def log(message):
+    def log(self, message: str) -> None:
         """Log a message to stderr."""
         print(message, file=sys.stderr)

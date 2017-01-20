@@ -77,13 +77,13 @@ class FakeSession:
 
 class FakeServerHost(ni_abc.ServerHost):
 
-    port = 1234
+    _port = 1234
     auth_token = 'some_auth_token'
     user_agent_name = 'Testing-Agent'
 
     def port(self):
         """Specify the port to bind the listening socket to."""
-        return self.port
+        return self._port
 
     def contrib_auth_token(self):
         return self.auth_token

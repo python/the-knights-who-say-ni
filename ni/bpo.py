@@ -1,5 +1,8 @@
 from http import client
 import json
+from typing import AbstractSet
+
+import aiohttp
 
 from . import abc as ni_abc
 
@@ -8,10 +11,11 @@ class Host(ni_abc.CLAHost):
 
     """CLA record hosting at bugs.python.org."""
 
-    def __init__(self, server):
+    def __init__(self, server: ni_abc.ServerHost) -> None:
         self.server = server
 
-    async def check(self, aio_client, usernames):
+    async def check(self, aio_client: aiohttp.ClientSession,
+                    usernames: AbstractSet[str]) -> ni_abc.Status:
         base_url = "http://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)
         self.server.log("Checking CLA status: " + url)
