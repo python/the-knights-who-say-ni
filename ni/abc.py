@@ -1,7 +1,7 @@
 import abc
 import asyncio
 import http
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import aiohttp
 from aiohttp import web
@@ -73,7 +73,7 @@ class ContribHost(abc.ABC):
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
 
     @abc.abstractmethod
-    async def usernames(self, client: aiohttp.ClientSession) -> Iterable[str]:
+    async def usernames(self, client: aiohttp.ClientSession) -> List[str]:
         """Return an iterable of all the contributors' usernames."""
         return []  # pragma: no cover
 
@@ -88,7 +88,8 @@ class CLAHost(abc.ABC):
     """Abstract base class for the CLA records platform."""
 
     @abc.abstractmethod
-    async def check(self, client: aiohttp.ClientSession, usernames) -> Status:
+    async def check(self, client: aiohttp.ClientSession,
+                    usernames: List[str]) -> Status:
         """Check if all of the specified usernames have signed the CLA."""
         # While it would technically share more specific information if a
         # mapping of {username: Status} was returned, the vast majority of
