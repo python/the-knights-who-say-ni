@@ -43,7 +43,7 @@ class ServerHost(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def user_agent(self) -> Optional[None]:
+    def user_agent(self) -> Optional[str]:
         """Return the HTTP User-Agent string, or None."""
 
     @abc.abstractmethod
