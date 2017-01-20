@@ -1,6 +1,6 @@
 from http import client
 import json
-from typing import Iterable
+from typing import AbstractSet
 
 import aiohttp
 
@@ -15,7 +15,7 @@ class Host(ni_abc.CLAHost):
         self.server = server
 
     async def check(self, aio_client: aiohttp.ClientSession,
-                    usernames: List[str]) -> ni_abc.Status:
+                    usernames: AbstractSet[str]) -> ni_abc.Status:
         base_url = "http://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)
         self.server.log("Checking CLA status: " + url)

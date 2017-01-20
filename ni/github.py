@@ -4,11 +4,16 @@ from http import client
 import json
 import operator
 import random
+from typing import AbstractSet, Any, Dict, Optional
 from urllib import parse
 
-from aiohttp import hdrs
+import aiohttp
+from aiohttp import hdrs, web
 
 from . import abc as ni_abc
+
+JSON = Any
+JSONDict = Dict[str, Any]
 
 
 LABEL_PREFIX = 'CLA '
@@ -89,14 +94,16 @@ class Host(ni_abc.ContribHost):
                         PullRequestEvent.unlabeled.value,
                         PullRequestEvent.synchronize.value}
 
-    def __init__(self, server, event, request):
+    def __init__(self, server: ni_abc.ServerHost, event: PullRequestEvent,
+                 request: JSONDict) -> None:
         """Represent a contribution."""
         self.server = server
         self.event = event
         self.request = request
 
     @classmethod
-    async def process(cls, server, request):
+    async def process(cls, server: ni_abc.ServerHost,
+                      request: web.Request) -> "Host":
         """Process the pull request."""
         # https://developer.github.com/webhooks/creating/#content-type
         if request.content_type != 'application/json':
@@ -128,16 +135,16 @@ class Host(ni_abc.ContribHost):
             raise TypeError(msg)
 
     @staticmethod
-    def check_response(response):
+    def check_response(response: web.Response) -> None:
         if response.status >= 300:
             msg = 'unexpected response for {!r}: {}'.format(response.url,
                                                             response.status)
             raise client.HTTPException(msg)
 
-    def auth_header(self):
+    def auth_header(self) -> Dict[str, str]:
         return {'Authorization': 'token ' + self.server.contrib_auth_token()}
 
-    async def get(self, client, url: str):
+    async def get(self, client: aiohttp.ClientSession, url: str) -> JSON:
         """Make a GET request for some JSON data.
 
         Abstracted out for easy testing w/o requiring internet access.
@@ -147,7 +154,8 @@ class Host(ni_abc.ContribHost):
             self.check_response(response)
             return (await response.json())
 
-    async def post(self, client, url: str, payload):
+    async def post(self, client: aiohttp.ClientSession, url: str,
+                   payload: JSON) -> None:
         """Make a POST request with JSON data to a URL."""
         encoding = 'utf-8'
         encoded_json = json.dumps(payload).encode(encoding)
@@ -161,13 +169,15 @@ class Host(ni_abc.ContribHost):
         async with post_manager as response:
             self.check_response(response)
 
-    async def delete(self, client, url):
+    async def delete(self, client: aiohttp.ClientSession,
+                     url: str) -> None:
         """Make a DELETE request to a URL."""
         headers = self.auth_header()
         async with client.delete(url, headers=headers) as response:
             self.check_response(response)
 
-    async def usernames(self, client):
+    async def usernames(self,
+                        client: aiohttp.ClientSession) -> AbstractSet[str]:
         """Return an iterable with all of the contributors' usernames."""
         pull_request = self.request['pull_request']
         # Start with the author of the pull request.
@@ -197,7 +207,8 @@ class Host(ni_abc.ContribHost):
                     logins.add(committer_login)
         return frozenset(logins)
 
-    async def labels_url(self, client, label=None):
+    async def labels_url(self, client: aiohttp.ClientSession,
+                         label: str = None) -> str:
         """Construct the URL to the label."""
         if not hasattr(self, '_labels_url'):
             issue_url = self.request['pull_request']['issue_url']
@@ -209,16 +220,18 @@ class Host(ni_abc.ContribHost):
         mapping = {'/name': quoted_label}
         return self._labels_url.format_map(mapping)
 
-    async def current_label(self, client):
+    async def current_label(self,
+                            client: aiohttp.ClientSession) -> Optional[str]:
         """Return the current CLA-related label."""
         labels_url = await self.labels_url(client)
         all_labels = map(operator.itemgetter('name'),
                          await self.get(client, labels_url))
-        cla_labels = (x for x in all_labels if x.startswith(LABEL_PREFIX))
-        cla_labels = sorted(cla_labels)
+        cla_labels = [x for x in all_labels if x.startswith(LABEL_PREFIX)]
+        cla_labels.sort()
         return cla_labels[0] if len(cla_labels) > 0 else None
 
-    async def set_label(self, client, status):
+    async def set_label(self, client: aiohttp.ClientSession,
+                        status: ni_abc.Status) -> str:
         """Set the label on the pull request based on the status of the CLA."""
         labels_url = await self.labels_url(client)
         if status == ni_abc.Status.signed:
@@ -228,7 +241,7 @@ class Host(ni_abc.ContribHost):
             await self.post(client, labels_url, [NO_CLA])
             return NO_CLA
 
-    async def remove_label(self, client):
+    async def remove_label(self, client: aiohttp.ClientSession) -> Optional[str]:
         """Remove any CLA-related labels from the pull request."""
         cla_label = await self.current_label(client)
         if cla_label is None:
@@ -237,7 +250,8 @@ class Host(ni_abc.ContribHost):
         await self.delete(client, deletion_url)
         return cla_label
 
-    async def comment(self, client, status):
+    async def comment(self, client: aiohttp.ClientSession,
+                      status: ni_abc.Status) -> Optional[str]:
         """Add an appropriate comment relating to the CLA status."""
         comments_url = self.request['pull_request']['comments_url']
         if status == ni_abc.Status.signed:
@@ -255,7 +269,8 @@ class Host(ni_abc.ContribHost):
         await self.post(client, comments_url, {'body': message})
         return message
 
-    async def update(self, client, status):
+    async def update(self, client: aiohttp.ClientSession,
+                     status: ni_abc.Status) -> None:
         if self.event == PullRequestEvent.opened:
             await self.set_label(client, status)
             await self.comment(client, status)
@@ -278,4 +293,4 @@ class Host(ni_abc.ContribHost):
         else:  # pragma: no cover
             # Should never be reached.
             msg = 'do not know how to update a PR for {}'.format(self.event)
-            raise RunimeError(msg)
+            raise RuntimeError(msg)
