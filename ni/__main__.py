@@ -12,7 +12,7 @@ from . import ContribHost
 from . import ServerHost
 
 
-def handler(create_client, server: ni_abc.ServerHost,
+def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.ServerHost,
             cla_records: ni_abc.CLAHost) -> Callable[[web.Request], Awaitable[web.Response]]:
     """Create a closure to handle requests from the contribution host."""
     async def respond(request: web.Request) -> web.Response:
