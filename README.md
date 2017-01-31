@@ -1,5 +1,5 @@
 # The Knights Who Say "Ni"!
-A bot to check if a contributor to a
+A bot to check if the author of a pull request to a
 [Python project](https://github.com/python) has signed the
 [PSF CLA](https://www.python.org/psf/contrib/contrib-form/).
 
