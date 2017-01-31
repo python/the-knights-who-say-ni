@@ -38,7 +38,7 @@ For legal reasons we need you to sign this before we can look at your \
 contribution. Please follow these steps to rectify the issue:
 
 1. Sign the [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
-2. Wait at least a day and then check "Your Details" on \
+2. **Wait at least a day** and then check "Your Details" on \
 [bugs.python.org](https://bugs.python.org/) to see if your account has been \
 marked as having signed the CLA \
 (the delay is due to a person having to manually check your signed CLA)
@@ -60,7 +60,7 @@ rectify the issue:
 2. Make sure your GitHub username is listed in "Your Details" at b.p.o
 3. If you have not already done so, please sign the \
 [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
-4. If you just signed the CLA, please wait at least a day and then check "Your Details" on \
+4. If you just signed the CLA, please **wait at least a day** and then check "Your Details" on \
 [bugs.python.org](https://bugs.python.org/) to see if your account has been \
 marked as having signed the CLA \
 (the delay is due to a person having to manually check your signed CLA)
