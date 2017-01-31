@@ -120,7 +120,7 @@ class Host(ni_abc.ContribHost):
         elif payload['action'] not in cls._useful_actions:
             raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif payload['action'] in {PullRequestEvent.opened.value, PullRequest.synchronize.value}:
-            return cls(server, PullRequestEvent(payload['action'], payload)
+            return cls(server, PullRequestEvent(payload['action']), payload)
         elif payload['action'] == PullRequestEvent.unlabeled.value:
             label = payload['label']['name']
             if not label.startswith(LABEL_PREFIX):
