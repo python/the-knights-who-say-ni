@@ -1,5 +1,5 @@
 language: python
-# cache: pip
+cache: pip
 python:
   - "3.6"
 before_install:
