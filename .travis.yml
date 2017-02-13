@@ -3,7 +3,7 @@ cache: pip
 python:
   - "3.6"
 before_install:
-  - pip install -U coverage codecov mypy typed_ast
+  - pip install -U coverage codecov mypy typed-ast
 install:
   - pip install -r requirements.txt
 script:
