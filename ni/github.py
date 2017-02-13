@@ -57,7 +57,8 @@ before we can look at your contribution. Please follow these steps to help \
 rectify the issue:
 
 1. If you don't have an account on b.p.o, please [create one](http://bugs.python.org/user?@template=register)
-2. Make sure your GitHub username is listed in "Your Details" at b.p.o
+2. Make sure your GitHub username is listed in \
+["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/22867185/d3aedcf8-f137-11e6-8469-d5f7861a1073.png)
 3. If you have not already done so, please sign the \
 [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
 4. If you just signed the CLA, please **wait at least one US business day** and then check "Your Details" on \
