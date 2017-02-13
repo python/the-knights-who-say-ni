@@ -8,7 +8,6 @@ install:
   - python3 -m pip install -r requirements.txt
 script:
   - python3 -m coverage run --branch -m unittest discover -t . -s ni/test/
-  - python3 -c "from typed_ast import ast3; print(ast3.__file__)"
-  - python3 -m mypy --python-version 3.6 --fast-parser --strict-optional --ignore-missing-imports --warn-unused-ignores --warn-redundant-casts --disallow-untyped-defs --disallow-untyped-calls ni/*.py
+  #- ./mypy.sh
 after_success:
   - codecov
