@@ -1,5 +1,5 @@
 language: python
-cache: pip
+
 python:
   - "3.6"
 before_install:
@@ -8,7 +8,6 @@ install:
   - python3 -m pip install -r requirements.txt
 script:
   - python3 -m coverage run --branch -m unittest discover -t . -s ni/test/
-  - python3 -c "import typed_ast.ast3"
   - ./mypy.sh
 after_success:
   - codecov
