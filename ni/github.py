@@ -37,10 +37,11 @@ NO_CLA_BODY = """Unfortunately our records indicate you have not signed the CLA.
 For legal reasons we need you to sign this before we can look at your \
 contribution. Please follow these steps to rectify the issue:
 
-1. Sign the [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
-2. **Wait at least one US business day** and then check "Your Details" on \
-[bugs.python.org](https://bugs.python.org/) to see if your account has been \
-marked as having signed the CLA \
+1. Sign the [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/). \
+The "bugs.python.org username" requested by the form is the "Login name" field under \
+"Your Details" on [bugs.python.org](https://bugs.python.org/)
+2. **Wait at least one US business day** and then check the "Contributor form received"
+entry under "Your Details" to see if your account has been marked as having signed the CLA \
 (the delay is due to a person having to manually check your signed CLA)
 3. Reply here saying you have completed the above steps
 """
