@@ -38,10 +38,11 @@ For legal reasons we need you to sign this before we can look at your \
 contribution. Please follow these steps to rectify the issue:
 
 1. Sign the [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/). \
-The "bugs.python.org username" requested by the form is the "Login name" field under \
-"Your Details" on [bugs.python.org](https://bugs.python.org/)
-2. **Wait at least one US business day** and then check the "Contributor form received"
-entry under "Your Details" to see if your account has been marked as having signed the CLA \
+The "bugs.python.org username" requested by the form is the "Login name" field in \
+["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/22867185/d3aedcf8-f137-11e6-8469-d5f7861a1073.png)
+2. **Wait at least one US business day** and then check the "Contributor form received \
+entry under "Your Details" on [bugs.python.org](https://bugs.python.org/) to see if your \
+account has been marked as having signed the CLA \
 (the delay is due to a person having to manually check your signed CLA)
 3. Reply here saying you have completed the above steps
 """
@@ -61,7 +62,8 @@ rectify the issue:
 2. Make sure your GitHub username is listed in \
 ["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/22867185/d3aedcf8-f137-11e6-8469-d5f7861a1073.png)
 3. If you have not already done so, please sign the \
-[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/)
+[PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/). The "bugs.python.org username " \
+requested by the form is the "Login name" field under "Your Details".
 4. If you just signed the CLA, please **wait at least one US business day** and then check "Your Details" on \
 [bugs.python.org](https://bugs.python.org/) to see if your account has been \
 marked as having signed the CLA \
