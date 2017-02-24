@@ -39,7 +39,7 @@ contribution. Please follow these steps to rectify the issue:
 
 1. Sign the [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/). \
 The "bugs.python.org username" requested by the form is the "Login name" field in \
-["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/22867185/d3aedcf8-f137-11e6-8469-d5f7861a1073.png)
+["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/23276970/d14a380c-f9d1-11e6-883d-e13b6b211239.png)
 2. **Wait at least one US business day** and then check the "Contributor form received \
 entry under "Your Details" on [bugs.python.org](https://bugs.python.org/) to see if your \
 account has been marked as having signed the CLA \
@@ -60,7 +60,7 @@ rectify the issue:
 
 1. If you don't have an account on b.p.o, please [create one](http://bugs.python.org/user?@template=register)
 2. Make sure your GitHub username is listed in \
-["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/22867185/d3aedcf8-f137-11e6-8469-d5f7861a1073.png)
+["Your Details" at b.p.o](https://cloud.githubusercontent.com/assets/2680980/23276970/d14a380c-f9d1-11e6-883d-e13b6b211239.png)
 3. If you have not already done so, please sign the \
 [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/). The "bugs.python.org username " \
 requested by the form is the "Login name" field under "Your Details".
