@@ -1,3 +1,4 @@
 # These are the general dependencies of the project. Pegged versions for use
 # for deployment is stored in `requirements.txt`.
 aiohttp
+gidgethub
