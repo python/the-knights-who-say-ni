@@ -9,6 +9,7 @@ from urllib import parse
 
 import aiohttp
 from aiohttp import hdrs, web
+from gidgethub import sansio
 
 from . import abc as ni_abc
 
@@ -107,34 +108,27 @@ class Host(ni_abc.ContribHost):
 
     @classmethod
     async def process(cls, server: ni_abc.ServerHost,
-                      request: web.Request) -> "Host":
+                      event: sansio.Event) -> "Host":
         """Process the pull request."""
-        # https://developer.github.com/webhooks/creating/#content-type
-        if request.content_type != 'application/json':
-            msg = ('can only accept application/json, '
-                   'not {}').format(request.content_type)
-            raise ni_abc.ResponseExit(
-                    status=http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE, text=msg)
-
-        payload = await request.json()
-        if 'zen' in payload:
+        if event.event == "ping":
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
             raise ni_abc.ResponseExit(status=http.HTTPStatus.OK)
-        elif payload['action'] not in cls._useful_actions:
+        elif event.event != "pull_request":
+            # Only happens if GitHub misconfigured to send the wrong events.
+            raise TypeError(f"don't know how to handle a {event.event!r} event")
+        elif event.data['action'] not in cls._useful_actions:
             raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-        elif payload['action'] in {PullRequestEvent.opened.value, PullRequestEvent.synchronize.value}:
-            return cls(server, PullRequestEvent(payload['action']), payload)
-        elif payload['action'] == PullRequestEvent.unlabeled.value:
-            label = payload['label']['name']
+        elif event.data['action'] in {PullRequestEvent.opened.value, PullRequestEvent.synchronize.value}:
+            return cls(server, PullRequestEvent(event.data['action']), event.data)
+        elif event.data['action'] == PullRequestEvent.unlabeled.value:
+            label = event.data['label']['name']
             if not label.startswith(LABEL_PREFIX):
                 raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-            return cls(server, PullRequestEvent.unlabeled, payload)
+            return cls(server, PullRequestEvent.unlabeled, event.data)
         else:  # pragma: no cover
             # Should never happen.
-            msg = "don't know how to handle a {!r} event".format(
-                payload['action'])
-            raise TypeError(msg)
+            raise TypeError(f"don't know how to handle a {event.data['action']!r} action")
 
     @staticmethod
     def check_response(response: web.Response) -> None:

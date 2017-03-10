@@ -1,4 +1,5 @@
 import asyncio
+import json
 import unittest
 
 from aiohttp import web
@@ -18,9 +19,12 @@ class FakeRequest:
     def __init__(self, payload={}, content_type='application/json'):
         self.content_type = content_type
         self._payload = payload
+        self.headers = {"x-github-event": "pull_request",
+                        "x-github-delivery": "12345",
+                        "content-type": "application/json"}
 
-    async def json(self):
-        return self._payload
+    async def read(self):
+        return json.dumps(self._payload).encode("utf-8")
 
 
 class FakeResponse(web.Response):
