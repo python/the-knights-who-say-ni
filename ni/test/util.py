@@ -56,27 +56,22 @@ class FakeSession:
     async def __aexit__(self, exc_type, exc, tb):
         pass
 
-    def get(self, url, headers=None):
-        self.method = 'GET'
+    def request(self, method, url, headers=None, data=None):
+        self.method = method
         self.url = url
         self._response.url = url
         self.headers = headers
+        self.data = data
         return self
+
+    def get(self, url, headers=None):
+        return self.request("GET", url, headers=headers)
 
     def post(self, url, data, headers):
-        self.method = 'POST'
-        self.url = url
-        self._response.url = url
-        self.data = data
-        self.headers = headers
-        return self
+        return self.request("POST", url, headers=headers, data=data)
 
     def delete(self, url, headers=None):
-        self.method = 'DELETE'
-        self.url = url
-        self._response.url = url
-        self.headers = headers
-        return self
+        return self.request("DELETE", url, headers=headers)
 
 
 class FakeServerHost(ni_abc.ServerHost):
