@@ -120,7 +120,7 @@ class Host(ni_abc.ContribHost):
             # https://developer.github.com/webhooks/#ping-event
             raise ni_abc.ResponseExit(status=http.HTTPStatus.OK)
         elif event.event != "pull_request":
-            # Only happens if GitHub misconfigured to send the wrong events.
+            # Only happens if GitHub is misconfigured to send the wrong events.
             raise TypeError(f"don't know how to handle a {event.event!r} event")
         elif event.data['action'] not in cls._useful_actions:
             raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
