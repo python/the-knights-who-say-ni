@@ -72,6 +72,13 @@ class GitHubTests(util.TestCase):
                                                    event, None))
         self.assertEqual(cm.exception.response.status, 200)
 
+    def test_wrong_event(self):
+        payload = {'zen': 'something pithy'}
+        event = sansio.Event(payload, event="issue", delivery_id="12345")
+        with self.assertRaises(TypeError):
+            self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                   event, None))
+
     def test_process_skipping(self):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
         # synchronized.
