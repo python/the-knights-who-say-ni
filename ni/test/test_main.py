@@ -32,17 +32,17 @@ class FakeContribHost(ni_abc.ContribHost):
     def route(self):
         return '*', '/'  # pragma: no cover
 
-    async def process(self, server, request):
+    async def process(self, server, request, session):
         """Process a request into a contribution."""
         if self._raise is not None:
             raise self._raise
         return self
 
-    async def usernames(self, client):
+    async def usernames(self):
         """Return an iterable of all the contributors' usernames."""
         return self._usernames
 
-    async def update(self, client, status):
+    async def update(self, status):
         """Update the contribution with the status of CLA coverage."""
         self.status = status
 

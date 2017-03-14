@@ -2,3 +2,4 @@
 # for deployment is stored in `requirements.txt`.
 aiohttp
 gidgethub
+uritemplate
