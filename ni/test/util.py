@@ -95,6 +95,7 @@ class FakeServerHost(ni_abc.ServerHost):
 
     _port = 1234
     auth_token = 'some_auth_token'
+    secret = None
     user_agent_name = 'Testing-Agent'
 
     def port(self):
@@ -103,6 +104,9 @@ class FakeServerHost(ni_abc.ServerHost):
 
     def contrib_auth_token(self):
         return self.auth_token
+
+    def contrib_secret(self):
+        return self.secret
 
     def user_agent(self):
         return self.user_agent_name

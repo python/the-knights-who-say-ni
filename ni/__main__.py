@@ -21,7 +21,8 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
         async with create_client() as client:
             try:
                 event = sansio.Event.from_http(request.headers,
-                                               await request.read())
+                                               await request.read(),
+                                               secret=server.contrib_secret())
                 contribution = await ContribHost.process(server, event, client)
                 usernames = await contribution.usernames()
                 server.log("Usernames: " + str(usernames))

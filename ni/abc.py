@@ -43,6 +43,10 @@ class ServerHost(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def contrib_secret(self) -> str:
+        """Return the secret for the contribution host."""
+
+    @abc.abstractmethod
     def user_agent(self) -> Optional[str]:
         """Return the HTTP User-Agent string, or None."""
 

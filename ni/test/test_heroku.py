@@ -30,6 +30,11 @@ class HerokuTests(unittest.TestCase):
         os.environ['GH_AUTH_TOKEN'] = auth_token
         self.assertEqual(self.server.contrib_auth_token(), auth_token)
 
+    def test_contrib_secret(self):
+        secret = "secret"
+        os.environ["GH_SECRET"] = secret
+        self.assertEqual(self.server.contrib_secret(), secret)
+
     def test_user_agent(self):
         user_agent = 'Testing-Agent'
         self.assertIsNone(self.server.user_agent())
