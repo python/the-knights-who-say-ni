@@ -4,6 +4,7 @@ import unittest.mock as mock
 
 from .. import __main__
 from .. import abc as ni_abc
+from .. import github
 from . import util
 
 
@@ -96,7 +97,7 @@ class HandlerTest(util.TestCase):
         server = util.FakeServerHost()
         server.secret = "secret"
         cla = FakeCLAHost(status)
-        contrib = FakeContribHost(usernames)
+        contrib = github.Host
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
             responder = __main__.handler(util.FakeSession, server, cla)
@@ -109,7 +110,7 @@ class HandlerTest(util.TestCase):
         status = ni_abc.Status.signed
         server = util.FakeServerHost()
         cla = FakeCLAHost(status)
-        contrib = FakeContribHost(usernames)
+        contrib = github.Host
         request = util.FakeRequest()
         request.headers["x-hub-signature"] = "sha1=signed"
         with mock.patch('ni.__main__.ContribHost', contrib):
