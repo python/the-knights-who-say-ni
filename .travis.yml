@@ -3,7 +3,6 @@ cache: pip
 python:
   - "3.6"
 before_install:
-  - python3 -m pip install -U typed-ast>=1.0.0
   - python3 -m pip install -U coverage codecov mypy
 install:
   - python3 -m pip install -r requirements.txt

@@ -32,17 +32,17 @@ class FakeContribHost(ni_abc.ContribHost):
     def route(self):
         return '*', '/'  # pragma: no cover
 
-    async def process(self, server, request):
+    async def process(self, server, request, session):
         """Process a request into a contribution."""
         if self._raise is not None:
             raise self._raise
         return self
 
-    async def usernames(self, client):
+    async def usernames(self):
         """Return an iterable of all the contributors' usernames."""
         return self._usernames
 
-    async def update(self, client, status):
+    async def update(self, status):
         """Update the contribution with the status of CLA coverage."""
         self.status = status
 
@@ -89,3 +89,31 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(util.FakeRequest()))
         self.assertEqual(response.status, http.HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(server.logged_exc, exc)
+
+    def test_contrib_secret_given(self):
+        usernames = ['brettcannon']
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.secret = "secret"
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        # Fails due to secret being provided but response not signed.
+        self.assertEqual(response.status, 500)
+
+    def test_contrib_secret_missing(self):
+        usernames = ['brettcannon']
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        request.headers["x-hub-signature"] = "sha1=signed"
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        # Fails due to secret being provided but response not signed.
+        self.assertEqual(response.status, 500)

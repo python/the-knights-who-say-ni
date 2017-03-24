@@ -9,6 +9,9 @@ from urllib import parse
 
 import aiohttp
 from aiohttp import hdrs, web
+from gidgethub.aiohttp import GitHubAPI
+from gidgethub import sansio
+import uritemplate
 
 from . import abc as ni_abc
 
@@ -80,96 +83,48 @@ class Host(ni_abc.ContribHost):
                         PullRequestEvent.unlabeled.value,
                         PullRequestEvent.synchronize.value}
 
-    def __init__(self, server: ni_abc.ServerHost, event: PullRequestEvent,
+    def __init__(self, server: ni_abc.ServerHost, client: aiohttp.ClientSession,
+                 event: PullRequestEvent,
                  request: JSONDict) -> None:
         """Represent a contribution."""
         self.server = server
         self.event = event
         self.request = request
+        self._gh = GitHubAPI(client, "the-knights-who-say-ni",
+                             oauth_token=server.contrib_auth_token())
 
     @classmethod
     async def process(cls, server: ni_abc.ServerHost,
-                      request: web.Request) -> "Host":
+                      event: sansio.Event, client: aiohttp.ClientSession) -> "Host":
         """Process the pull request."""
-        # https://developer.github.com/webhooks/creating/#content-type
-        if request.content_type != 'application/json':
-            msg = ('can only accept application/json, '
-                   'not {}').format(request.content_type)
-            raise ni_abc.ResponseExit(
-                    status=http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE, text=msg)
-
-        payload = await request.json()
-        if 'zen' in payload:
+        if event.event == "ping":
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
             raise ni_abc.ResponseExit(status=http.HTTPStatus.OK)
-        elif payload['action'] not in cls._useful_actions:
+        elif event.event != "pull_request":
+            # Only happens if GitHub is misconfigured to send the wrong events.
+            raise TypeError(f"don't know how to handle a {event.event!r} event")
+        elif event.data['action'] not in cls._useful_actions:
             raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-        elif payload['action'] in {PullRequestEvent.opened.value, PullRequestEvent.synchronize.value}:
-            return cls(server, PullRequestEvent(payload['action']), payload)
-        elif payload['action'] == PullRequestEvent.unlabeled.value:
-            label = payload['label']['name']
+        elif event.data['action'] in {PullRequestEvent.opened.value, PullRequestEvent.synchronize.value}:
+            return cls(server, client, PullRequestEvent(event.data['action']),
+                       event.data)
+        elif event.data['action'] == PullRequestEvent.unlabeled.value:
+            label = event.data['label']['name']
             if not label.startswith(LABEL_PREFIX):
                 raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
-            return cls(server, PullRequestEvent.unlabeled, payload)
+            return cls(server, client, PullRequestEvent.unlabeled, event.data)
         else:  # pragma: no cover
             # Should never happen.
-            msg = "don't know how to handle a {!r} event".format(
-                payload['action'])
-            raise TypeError(msg)
+            raise TypeError(f"don't know how to handle a {event.data['action']!r} action")
 
-    @staticmethod
-    def check_response(response: web.Response) -> None:
-        if response.status >= 300:
-            msg = 'unexpected response for {!r}: {}'.format(response.url,
-                                                            response.status)
-            raise client.HTTPException(msg)
-
-    def auth_header(self) -> Dict[str, str]:
-        return {'Authorization': 'token ' + self.server.contrib_auth_token()}
-
-    async def get(self, client: aiohttp.ClientSession, url: str) -> JSON:
-        """Make a GET request for some JSON data.
-
-        Abstracted out for easy testing w/o requiring internet access.
-        """
-        headers = self.auth_header()
-        async with client.get(url, headers=headers) as response:
-            self.check_response(response)
-            return (await response.json())
-
-    async def post(self, client: aiohttp.ClientSession, url: str,
-                   payload: JSON) -> None:
-        """Make a POST request with JSON data to a URL."""
-        encoding = 'utf-8'
-        encoded_json = json.dumps(payload).encode(encoding)
-        headers = {hdrs.CONTENT_TYPE: 'application/json; charset=' + encoding}
-        user_agent = self.server.user_agent()
-        if user_agent:
-            headers[hdrs.USER_AGENT] = user_agent
-        headers.update(self.auth_header())
-        post_manager = client.post(url, data=encoded_json,
-                                          headers=headers)
-        async with post_manager as response:
-            self.check_response(response)
-
-    async def delete(self, client: aiohttp.ClientSession,
-                     url: str) -> None:
-        """Make a DELETE request to a URL."""
-        headers = self.auth_header()
-        async with client.delete(url, headers=headers) as response:
-            self.check_response(response)
-
-    async def usernames(self,
-                        client: aiohttp.ClientSession) -> AbstractSet[str]:
+    async def usernames(self) -> AbstractSet[str]:
         """Return an iterable with all of the contributors' usernames."""
         pull_request = self.request['pull_request']
         # Start with the author of the pull request.
         logins = {pull_request['user']['login']}
-        # Fetch the commit data for the pull request.
-        commits = await self.get(client, pull_request['commits_url'])
         # For each commit, get the author and committer.
-        for commit in commits:
+        async for commit in self._gh.getiter(pull_request['commits_url']):
             author = commit['author']
             # When the author is missing there seems to typically be a
             # matching commit that **does** specify the author. (issue #56)
@@ -191,51 +146,44 @@ class Host(ni_abc.ContribHost):
                     logins.add(committer_login)
         return frozenset(logins)
 
-    async def labels_url(self, client: aiohttp.ClientSession,
-                         label: str = None) -> str:
+    async def labels_url(self, label: str = None) -> str:
         """Construct the URL to the label."""
         if not hasattr(self, '_labels_url'):
             issue_url = self.request['pull_request']['issue_url']
-            issue_data = await self.get(client, issue_url)
-            self._labels_url = issue_data['labels_url']
-        quoted_label = ''
-        if label is not None:
-            quoted_label = '/' + parse.quote(label)
-        mapping = {'/name': quoted_label}
-        return self._labels_url.format_map(mapping)
+            issue_data = await self._gh.getitem(issue_url)
+            self._labels_url = uritemplate.URITemplate(issue_data['labels_url'])
+        return self._labels_url.expand(name=label)
 
-    async def current_label(self,
-                            client: aiohttp.ClientSession) -> Optional[str]:
+    async def current_label(self) -> Optional[str]:
         """Return the current CLA-related label."""
-        labels_url = await self.labels_url(client)
-        all_labels = map(operator.itemgetter('name'),
-                         await self.get(client, labels_url))
+        labels_url = await self.labels_url()
+        all_labels = []
+        async for label in self._gh.getiter(labels_url):
+            all_labels.append(label['name'])
         cla_labels = [x for x in all_labels if x.startswith(LABEL_PREFIX)]
         cla_labels.sort()
         return cla_labels[0] if len(cla_labels) > 0 else None
 
-    async def set_label(self, client: aiohttp.ClientSession,
-                        status: ni_abc.Status) -> str:
+    async def set_label(self, status: ni_abc.Status) -> str:
         """Set the label on the pull request based on the status of the CLA."""
-        labels_url = await self.labels_url(client)
+        labels_url = await self.labels_url()
         if status == ni_abc.Status.signed:
-            await self.post(client, labels_url, [CLA_OK])
+            await self._gh.post(labels_url, data=[CLA_OK])
             return CLA_OK
         else:
-            await self.post(client, labels_url, [NO_CLA])
+            await self._gh.post(labels_url, data=[NO_CLA])
             return NO_CLA
 
-    async def remove_label(self, client: aiohttp.ClientSession) -> Optional[str]:
+    async def remove_label(self) -> Optional[str]:
         """Remove any CLA-related labels from the pull request."""
-        cla_label = await self.current_label(client)
+        cla_label = await self.current_label()
         if cla_label is None:
             return None
-        deletion_url = await self.labels_url(client, cla_label)
-        await self.delete(client, deletion_url)
+        deletion_url = await self.labels_url(cla_label)
+        await self._gh.delete(deletion_url)
         return cla_label
 
-    async def comment(self, client: aiohttp.ClientSession,
-                      status: ni_abc.Status) -> Optional[str]:
+    async def comment(self, status: ni_abc.Status) -> Optional[str]:
         """Add an appropriate comment relating to the CLA status."""
         comments_url = self.request['pull_request']['comments_url']
         if status == ni_abc.Status.signed:
@@ -250,30 +198,29 @@ class Host(ni_abc.ContribHost):
         else:  # pragma: no cover
             # Should never be reached.
             raise TypeError("don't know how to handle {}".format(status))
-        await self.post(client, comments_url, {'body': message})
+        await self._gh.post(comments_url, data={'body': message})
         return message
 
-    async def update(self, client: aiohttp.ClientSession,
-                     status: ni_abc.Status) -> None:
+    async def update(self, status: ni_abc.Status) -> None:
         if self.event == PullRequestEvent.opened:
-            await self.set_label(client, status)
-            await self.comment(client, status)
+            await self.set_label(status)
+            await self.comment(status)
         elif self.event == PullRequestEvent.unlabeled:
             # The assumption is that a PR will almost always go from no CLA to
             # being cleared, so don't bug the user with what will probably
             # amount to a repeated message about lacking a CLA.
-            await self.set_label(client, status)
+            await self.set_label(status)
         elif self.event == PullRequestEvent.synchronize:
-            current_label = await self.current_label(client)
+            current_label = await self.current_label()
             if status == ni_abc.Status.signed:
                 if current_label != CLA_OK:
-                    await self.remove_label(client)
+                    await self.remove_label()
             elif current_label != NO_CLA:
-                    await self.remove_label(client)
+                    await self.remove_label()
                     # Since there is a chance a new person was added to a PR
                     # which caused the change in status, a comment on how to
                     # resolve the CLA issue is probably called for.
-                    await self.comment(client, status)
+                    await self.comment(status)
         else:  # pragma: no cover
             # Should never be reached.
             msg = 'do not know how to update a PR for {}'.format(self.event)

@@ -19,6 +19,10 @@ class Host(ni_abc.ServerHost):
         return os.environ['GH_AUTH_TOKEN']
 
     @staticmethod
+    def contrib_secret() -> str:
+        return os.environ["GH_SECRET"]
+
+    @staticmethod
     def user_agent() -> Optional[str]:
         return os.environ.get('USER_AGENT')
 

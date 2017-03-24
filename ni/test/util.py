@@ -1,4 +1,5 @@
 import asyncio
+import json
 import unittest
 
 from aiohttp import web
@@ -18,12 +19,21 @@ class FakeRequest:
     def __init__(self, payload={}, content_type='application/json'):
         self.content_type = content_type
         self._payload = payload
+        self.headers = {"x-github-event": "pull_request",
+                        "x-github-delivery": "12345",
+                        "content-type": "application/json"}
 
-    async def json(self):
-        return self._payload
+    async def read(self):
+        return json.dumps(self._payload).encode("utf-8")
 
 
 class FakeResponse(web.Response):
+
+    headers = {"content-type": "application/json; charset=utf-8",
+               "x-ratelimit-limit": "10",
+               "x-ratelimit-remaining": "5",
+               "x-ratelimit-reset": "1"}
+    url = "test URL"
 
     def __init__(self, *args, data=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,50 +45,57 @@ class FakeResponse(web.Response):
     async def text(self):
         return self._data
 
+    async def read(self):
+        return json.dumps(self._data).encode("utf-8")
+
 
 class FakeSession:
 
-    def __init__(self, *, data=None, response=None):
-        if response is None:
-            response = FakeResponse(status=200, data=data)
-        self._response = response
+    def __init__(self, responses={}, response=None):
+        self._responses = {}
+        for request, data in responses.items():
+            self._responses[request] = FakeResponse(status=200, data=data)
+        if response is not None:
+            self.next_response = response
 
     def __call__(self):
         return self
 
     async def __aenter__(self):
-        return self._response
+        try:
+            return self.next_response
+        except AttributeError:
+            return None
 
     async def __aexit__(self, exc_type, exc, tb):
         pass
 
-    def get(self, url, headers=None):
-        self.method = 'GET'
+    def request(self, method, url, headers=None, data=None):
+        self.method = method
         self.url = url
-        self._response.url = url
         self.headers = headers
+        self.data = data
+        try:
+            self.next_response = self._responses[(method, url)]
+        except KeyError:
+            pass
         return self
+
+    def get(self, url, headers=None):
+        return self.request("GET", url, headers=headers)
 
     def post(self, url, data, headers):
-        self.method = 'POST'
-        self.url = url
-        self._response.url = url
-        self.data = data
-        self.headers = headers
-        return self
+        return self.request("POST", url, headers=headers, data=data)
 
     def delete(self, url, headers=None):
-        self.method = 'DELETE'
-        self.url = url
-        self._response.url = url
-        self.headers = headers
-        return self
+        return self.request("DELETE", url, headers=headers)
 
 
 class FakeServerHost(ni_abc.ServerHost):
 
     _port = 1234
     auth_token = 'some_auth_token'
+    secret = None
     user_agent_name = 'Testing-Agent'
 
     def port(self):
@@ -87,6 +104,9 @@ class FakeServerHost(ni_abc.ServerHost):
 
     def contrib_auth_token(self):
         return self.auth_token
+
+    def contrib_secret(self):
+        return self.secret
 
     def user_agent(self):
         return self.user_agent_name

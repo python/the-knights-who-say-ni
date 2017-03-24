@@ -5,6 +5,7 @@ from typing import AbstractSet, Any, Optional, Tuple
 
 import aiohttp
 from aiohttp import web
+from gidgethub import sansio
 
 import enum
 
@@ -43,6 +44,10 @@ class ServerHost(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def contrib_secret(self) -> str:
+        """Return the secret for the contribution host."""
+
+    @abc.abstractmethod
     def user_agent(self) -> Optional[str]:
         """Return the HTTP User-Agent string, or None."""
 
@@ -67,19 +72,19 @@ class ContribHost(abc.ABC):
     @classmethod
     @abc.abstractmethod
     async def process(cls, server: ServerHost,
-                      request: web.Request) -> "ContribHost":
+                      event: sansio.Event,
+                      client: aiohttp.ClientSession) -> "ContribHost":
         """Process a request into a contribution."""
         # This method exists because __init__() cannot be a coroutine.
         raise ResponseExit(status=http.HTTPStatus.NOT_IMPLEMENTED)  # pragma: no cover
 
     @abc.abstractmethod
-    async def usernames(self, client: aiohttp.ClientSession) -> AbstractSet[str]:
+    async def usernames(self) -> AbstractSet[str]:
         """Return an iterable of all the contributors' usernames."""
         return frozenset()  # pragma: no cover
 
     @abc.abstractmethod
-    async def update(self, client: aiohttp.ClientSession,
-                     status: Status) -> None:
+    async def update(self, status: Status) -> None:
         """Update the contribution with the status of CLA coverage."""
 
 

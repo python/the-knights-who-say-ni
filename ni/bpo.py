@@ -21,8 +21,7 @@ class Host(ni_abc.CLAHost):
         self.server.log("Checking CLA status: " + url)
         async with aio_client.get(url) as response:
             if response.status >= 300:
-                msg = 'unexpected response for {!r}: {}'.format(response.url,
-                                                                response.status)
+                msg = f'unexpected response for {response.url!r}: {response.status}'
                 raise client.HTTPException(msg)
             # Explicitly decode JSON as b.p.o doesn't set the content-type as
             # `application/json`.
