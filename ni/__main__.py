@@ -3,9 +3,10 @@ import asyncio
 import http
 from typing import Awaitable, Callable
 
+# ONLY third-party libraries that don't break the abstraction promise may be
+# imported.
 import aiohttp
 from aiohttp import web
-from gidgethub import sansio
 
 from . import abc as ni_abc
 from . import CLAHost
@@ -20,10 +21,7 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
         """Handle a webhook trigger from the contribution host."""
         async with create_client() as client:
             try:
-                event = sansio.Event.from_http(request.headers,
-                                               await request.read(),
-                                               secret=server.contrib_secret())
-                contribution = await ContribHost.process(server, event, client)
+                contribution = await ContribHost.process(server, request, client)
                 usernames = await contribution.usernames()
                 server.log("Usernames: " + str(usernames))
                 cla_status = await cla_records.check(client, usernames)

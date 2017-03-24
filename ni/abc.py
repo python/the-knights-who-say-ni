@@ -1,13 +1,13 @@
 import abc
 import asyncio
+import enum
 import http
 from typing import AbstractSet, Any, Optional, Tuple
 
+# ONLY third-party libraries which won't break the abstraction promise may be
+# imported.
 import aiohttp
 from aiohttp import web
-from gidgethub import sansio
-
-import enum
 
 
 class ResponseExit(Exception):
@@ -72,7 +72,7 @@ class ContribHost(abc.ABC):
     @classmethod
     @abc.abstractmethod
     async def process(cls, server: ServerHost,
-                      event: sansio.Event,
+                      request: web.Request,
                       client: aiohttp.ClientSession) -> "ContribHost":
         """Process a request into a contribution."""
         # This method exists because __init__() cannot be a coroutine.

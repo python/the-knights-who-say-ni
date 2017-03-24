@@ -95,8 +95,11 @@ class Host(ni_abc.ContribHost):
 
     @classmethod
     async def process(cls, server: ni_abc.ServerHost,
-                      event: sansio.Event, client: aiohttp.ClientSession) -> "Host":
+                      request: web.Request, client: aiohttp.ClientSession) -> "Host":
         """Process the pull request."""
+        event = sansio.Event.from_http(request.headers,
+                                       await request.read(),
+                                       secret=server.contrib_secret())
         if event.event == "ping":
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event

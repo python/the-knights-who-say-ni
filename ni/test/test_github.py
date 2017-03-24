@@ -66,18 +66,20 @@ class GitHubTests(util.TestCase):
         # GitHub can ping a webhook to verify things are set up.
         # https://developer.github.com/webhooks/#ping-event
         payload = {'zen': 'something pithy'}
-        event = sansio.Event(payload, event="ping", delivery_id="12345")
+        request = util.FakeRequest(payload)
+        request.headers['x-github-event'] = 'ping'
         with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                   event, None))
+                                                   request, None))
         self.assertEqual(cm.exception.response.status, 200)
 
     def test_wrong_event(self):
         payload = {'zen': 'something pithy'}
-        event = sansio.Event(payload, event="issue", delivery_id="12345")
+        request = util.FakeRequest(payload)
+        request.headers['x-github-event'] = 'issue'
         with self.assertRaises(TypeError):
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                   event, None))
+                                                   request, None))
 
     def test_process_skipping(self):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
@@ -86,45 +88,41 @@ class GitHubTests(util.TestCase):
             if event in self.acceptable:
                 continue
             payload = {'action': event.value}
-            event = sansio.Event(payload, event="pull_request",
-                                 delivery_id="1234")
+            request = util.FakeRequest(payload)
             with self.assertRaises(ni_abc.ResponseExit) as cm:
                 self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                       event, None))
+                                                       request, None))
             self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_opened(self):
-        event = sansio.Event(self.opened_example, event="pull_request",
-                             delivery_id="12345")
+        request = util.FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                        event, None))
+                                                        request, None))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
     def test_process_unlabeled(self):
         # Test a CLA label being removed.
         unlabeled_example_CLA = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_CLA['label']['name'] = github.CLA_OK
-        event = sansio.Event(unlabeled_example_CLA, event="pull_request",
-                             delivery_id="12345")
+        request = util.FakeRequest(unlabeled_example_CLA)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                        event, None))
+                                                        request, None))
         self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
         # Test a non-CLA label being removed.
         unlabeled_example_other = copy.deepcopy(self.unlabeled_example)
         unlabeled_example_other['label']['name'] = 'missing something or other'
-        event = sansio.Event(unlabeled_example_other, event="pull_request",
-                             delivery_id="12345")
+
+        request = util.FakeRequest(unlabeled_example_other)
         request = util.FakeRequest(unlabeled_example_other)
         with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                   event, None))
+                                                   request, None))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_synchronize(self):
-        event = sansio.Event(self.synchronize_example, event="pull_request",
-                             delivery_id="12345")
+        request = util.FakeRequest(self.synchronize_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                        event, None))
+                                                        request, None))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
 
     def test_usernames(self):
