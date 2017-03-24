@@ -5,6 +5,7 @@ from typing import AbstractSet, Any, Optional, Tuple
 
 import aiohttp
 from aiohttp import web
+from gidgethub import sansio
 
 import enum
 
@@ -71,7 +72,7 @@ class ContribHost(abc.ABC):
     @classmethod
     @abc.abstractmethod
     async def process(cls, server: ServerHost,
-                      request: web.Request,
+                      event: sansio.Event,
                       client: aiohttp.ClientSession) -> "ContribHost":
         """Process a request into a contribution."""
         # This method exists because __init__() cannot be a coroutine.
