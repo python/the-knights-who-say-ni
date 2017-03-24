@@ -97,4 +97,5 @@ CLA).
 3. Add the webhook
     1. Add the URL
     2. Send `application/json` (the default)
-    3. Specify events to be `pull request` only (default is `push` which is unnecessary)
+    3. Add the secret
+    4. Specify events to be `pull request` only (default is `push` which is unnecessary)
