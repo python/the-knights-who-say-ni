@@ -1,3 +1,4 @@
+import asyncio
 import enum
 import http
 from http import client
@@ -110,6 +111,10 @@ class Host(ni_abc.ContribHost):
         elif event.data['action'] not in cls._useful_actions:
             raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
         elif event.data['action'] in {PullRequestEvent.opened.value, PullRequestEvent.synchronize.value}:
+            if event.data['action'] == PullRequestEvent.opened.value:
+                # GitHub is eventually consistent, so add a delay to wait for
+                # the API to digest the new pull request.
+                await asyncio.sleep(1)
             return cls(server, client, PullRequestEvent(event.data['action']),
                        event.data)
         elif event.data['action'] == PullRequestEvent.unlabeled.value:
