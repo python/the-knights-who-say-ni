@@ -51,8 +51,9 @@ We also demand... [A SHRUBBERY!](https://www.youtube.com/watch?v=zIV4poUZAQo)
 
 NO_USERNAME_BODY = """Unfortunately we couldn't find an account corresponding \
 to your GitHub username on [bugs.python.org](http://bugs.python.org/) \
-(b.p.o) to verify you have signed the CLA. This is necessary for legal reasons \
-before we can look at your contribution. Please follow \
+(b.p.o) to verify you have signed the CLA (this might be simply due to a \
+missing "GitHub Name" entry in your b.p.o account settings). This is necessary \
+for legal reasons before we can look at your contribution. Please follow \
 [the steps outlined in the CPython devguide](https://cpython-devguide.readthedocs.io/pullrequest.html#licensing) \
 to rectify this issue.
 """
