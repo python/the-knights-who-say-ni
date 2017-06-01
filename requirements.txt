@@ -4,4 +4,4 @@ chardet==3.0.3
 gidgethub==2.2.0
 multidict==2.1.6
 uritemplate==3.0.0
-yarl==0.10.0
+yarl==0.10.2
