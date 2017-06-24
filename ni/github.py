@@ -40,7 +40,7 @@ Thanks again to your contribution and we look forward to looking at it!
 NO_CLA_BODY = """Unfortunately our records indicate you have not signed the CLA. \
 For legal reasons we need you to sign this before we can look at your \
 contribution. Please follow \
-[the steps outlined in the CPython devguide](https://cpython-devguide.readthedocs.io/pullrequest.html#licensing) \
+[the steps outlined in the CPython devguide](https://devguide.python.org/pullrequest/#licensing) \
 to rectify this issue.
 """
 
@@ -54,7 +54,7 @@ to your GitHub username on [bugs.python.org](http://bugs.python.org/) \
 (b.p.o) to verify you have signed the CLA (this might be simply due to a \
 missing "GitHub Name" entry in your b.p.o account settings). This is necessary \
 for legal reasons before we can look at your contribution. Please follow \
-[the steps outlined in the CPython devguide](https://cpython-devguide.readthedocs.io/pullrequest.html#licensing) \
+[the steps outlined in the CPython devguide](https://devguide.python.org/pullrequest/#licensing) \
 to rectify this issue.
 """
 
