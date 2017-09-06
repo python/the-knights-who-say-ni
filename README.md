@@ -102,3 +102,14 @@ CLA).
     2. Send `application/json` (the default)
     3. Add the secret
     4. Specify events to be `pull request` only (default is `push` which is unnecessary)
+
+## Ignored Users List
+
+Users in the Ignored List will not be checked for CLA.  This can be useful if
+the user is a bot or an app. To add users to the ignore list, set the
+`CLA_IGNORED_USERNAMES` environment variable as a comma-separated list.
+
+For example, if `bot-one` and `bot-two` are to be ignored, set the environment
+variable as follows:
+
+`CLA_IGNORED_USERNAMES` = `bot-one,bot-two`

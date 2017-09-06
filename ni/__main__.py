@@ -26,9 +26,7 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
                 contribution = await ContribHost.process(server, request, client)
                 usernames = await contribution.usernames()
                 server.log("Usernames: " + str(usernames))
-                usernames = [username
-                                for username in usernames
-                                    if username not in os.environ.get('WHITELISTED_USERS')]
+                usernames = get_not_ignored_usernames(usernames)
                 cla_status = await cla_records.check(client, usernames)
                 server.log("CLA status: " + str(cla_status))
                 # With a work queue, one could make the updating of the
@@ -43,6 +41,18 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
                         status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return respond
+
+
+def get_not_ignored_usernames(usernames):
+    """ Return a list of usernames, excluding the ignored ones """
+    cla_ignored_users = os.environ.get('CLA_IGNORED_USERNAMES')
+    if cla_ignored_users:
+        ignored_user_list = [ignored.strip()
+                                for ignored in cla_ignored_users.split(",")]
+        return [username for username in usernames
+                    if username not in ignored_user_list]
+
+    return usernames
 
 
 if __name__ == '__main__':
