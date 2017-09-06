@@ -1,6 +1,8 @@
 """Implement a server to check if a contribution is covered by a CLA(s)."""
 import asyncio
 import http
+import os
+
 from typing import Awaitable, Callable
 
 # ONLY third-party libraries that don't break the abstraction promise may be
@@ -24,6 +26,9 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
                 contribution = await ContribHost.process(server, request, client)
                 usernames = await contribution.usernames()
                 server.log("Usernames: " + str(usernames))
+                usernames = [username
+                                for username in usernames
+                                    if username not in os.environ.get('WHITELISTED_USERS')]
                 cla_status = await cla_records.check(client, usernames)
                 server.log("CLA status: " + str(cla_status))
                 # With a work queue, one could make the updating of the
