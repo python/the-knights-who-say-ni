@@ -47,10 +47,10 @@ def get_not_ignored_usernames(usernames):
     """ Return a list of usernames, excluding the ignored ones """
     cla_ignored_users = os.environ.get('CLA_IGNORED_USERNAMES')
     if cla_ignored_users:
-        ignored_user_list = [ignored.strip()
+        ignored_user_list = [ignored.strip().lower()
                                 for ignored in cla_ignored_users.split(",")]
         return [username for username in usernames
-                    if username not in ignored_user_list]
+                    if username.lower() not in ignored_user_list]
 
     return usernames
 

@@ -142,3 +142,9 @@ class GetNotIgnoredUsernamesTest(util.TestCase):
     def test_comma_separated_ignore_list_with_spaces(self):
         usernames = ['brettcannon', 'bedevere-bot', 'miss-islington']
         self.assertEqual(get_not_ignored_usernames(usernames), ['brettcannon'])
+
+    @mock.patch.dict(os.environ,
+                     {'CLA_IGNORED_USERNAMES': 'bedevere-bot, Miss-Islington'})
+    def test_ignore_list_ignore_case(self):
+        usernames = ['brettcannon', 'bedevere-bot', 'miss-islington']
+        self.assertEqual(get_not_ignored_usernames(usernames), ['brettcannon'])
