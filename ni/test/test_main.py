@@ -4,7 +4,7 @@ import os
 import unittest.mock as mock
 
 from .. import __main__
-from ..__main__ import get_not_ignored_usernames
+from ..__main__ import get_checked_usernames
 from .. import abc as ni_abc
 from .. import github
 from . import util
@@ -126,25 +126,25 @@ class GetNotIgnoredUsernamesTest(util.TestCase):
 
     def test_no_ignored_list(self):
         usernames = ['brettcannon', 'mariatta']
-        self.assertEqual(get_not_ignored_usernames(usernames), usernames)
+        self.assertEqual(get_checked_usernames(usernames), usernames)
 
     @mock.patch.dict(os.environ, {'CLA_IGNORED_USERNAMES': 'bedevere-bot'})
     def test_not_comma_separated_ignore_list(self):
         usernames = ['brettcannon', 'bedevere-bot']
-        self.assertEqual(get_not_ignored_usernames(usernames), ['brettcannon'])
+        self.assertEqual(get_checked_usernames(usernames), ['brettcannon'])
 
     @mock.patch.dict(os.environ, {'CLA_IGNORED_USERNAMES': 'bedevere-bot,miss-islington'})
     def test_comma_separated_ignore_list(self):
         usernames = ['brettcannon', 'bedevere-bot', 'miss-islington']
-        self.assertEqual(get_not_ignored_usernames(usernames), ['brettcannon'])
+        self.assertEqual(get_checked_usernames(usernames), ['brettcannon'])
 
     @mock.patch.dict(os.environ, {'CLA_IGNORED_USERNAMES': 'bedevere-bot, miss-islington'})
     def test_comma_separated_ignore_list_with_spaces(self):
         usernames = ['brettcannon', 'bedevere-bot', 'miss-islington']
-        self.assertEqual(get_not_ignored_usernames(usernames), ['brettcannon'])
+        self.assertEqual(get_checked_usernames(usernames), ['brettcannon'])
 
     @mock.patch.dict(os.environ,
                      {'CLA_IGNORED_USERNAMES': 'bedevere-bot, Miss-Islington'})
     def test_ignore_list_ignore_case(self):
         usernames = ['brettcannon', 'bedevere-bot', 'miss-islington']
-        self.assertEqual(get_not_ignored_usernames(usernames), ['brettcannon'])
+        self.assertEqual(get_checked_usernames(usernames), ['brettcannon'])
