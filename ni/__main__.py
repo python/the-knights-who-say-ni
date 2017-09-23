@@ -3,7 +3,7 @@ import asyncio
 import http
 import os
 
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, AbstractSet
 
 # ONLY third-party libraries that don't break the abstraction promise may be
 # imported.
@@ -43,7 +43,7 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
     return respond
 
 
-def get_checked_usernames(usernames):
+def get_checked_usernames(usernames: AbstractSet[str]) -> AbstractSet[str]:
     """
     Return a list of usernames to be checked for CLA
     excluding the ignored ones
@@ -52,8 +52,8 @@ def get_checked_usernames(usernames):
     if cla_ignored_users:
         ignored_user_list = [ignored.strip().lower()
                                 for ignored in cla_ignored_users.split(",")]
-        return [username for username in usernames
-                    if username.lower() not in ignored_user_list]
+        return frozenset([username for username in usernames
+                    if username.lower() not in ignored_user_list])
 
     return usernames
 
