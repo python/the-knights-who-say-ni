@@ -16,7 +16,7 @@ class Host(ni_abc.CLAHost):
 
     async def check(self, aio_client: aiohttp.ClientSession,
                     usernames: AbstractSet[str]) -> ni_abc.Status:
-        base_url = "http://bugs.python.org/user?@template=clacheck&github_names="
+        base_url = "https://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)
         self.server.log("Checking CLA status: " + url)
         async with aio_client.get(url) as response:

@@ -37,7 +37,7 @@ A CLA bot breaks down into essentially three components:
 In the case of the Python project and this bot, the server host is
 [Heroku](https://www.heroku.com/), the contribution host is
 [GitHub](https://github.com), and the CLA records host is
-[bugs.python.org](http://bugs.python.org/) (which is an installation
+[bugs.python.org](https://bugs.python.org/) (which is an installation
 of [Roundup](http://roundup.sourceforge.net/)). But considering the
 Python project was started back in 1990 and has already changed
 contribution hosts at least three times, a design goal of this
