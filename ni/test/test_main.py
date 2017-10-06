@@ -1,10 +1,7 @@
 import http
-import unittest
-import os
 import unittest.mock as mock
 
 from .. import __main__
-from ..__main__ import get_checked_usernames
 from .. import abc as ni_abc
 from .. import github
 from . import util
@@ -43,7 +40,7 @@ class FakeContribHost(ni_abc.ContribHost):
 
     async def usernames(self):
         """Return an iterable of all the contributors' usernames."""
-        return self._usernames
+        return frozenset(self._usernames)
 
     async def update(self, status):
         """Update the contribution with the status of CLA coverage."""
@@ -64,7 +61,7 @@ class HandlerTest(util.TestCase):
             responder = __main__.handler(util.FakeSession, server, cla)
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
-        self.assertEqual(cla.usernames, usernames)
+        self.assertEqual(cla.usernames, frozenset(usernames))
         self.assertEqual(contrib.status, status)
 
     def test_ResponseExit(self):
@@ -120,35 +117,3 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(request))
         # Fails due to secret being provided but response not signed.
         self.assertEqual(response.status, 500)
-
-
-class GetNotIgnoredUsernamesTest(util.TestCase):
-
-    def test_no_ignored_list(self):
-        usernames = frozenset(['brettcannon', 'mariatta'])
-        self.assertEqual(get_checked_usernames(usernames), usernames)
-
-    @mock.patch.dict(os.environ, {'CLA_IGNORED_USERNAMES': 'bedevere-bot'})
-    def test_not_comma_separated_ignore_list(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot'])
-        self.assertEqual(get_checked_usernames(usernames),
-                         frozenset(['brettcannon']))
-
-    @mock.patch.dict(os.environ, {'CLA_IGNORED_USERNAMES': 'bedevere-bot,miss-islington'})
-    def test_comma_separated_ignore_list(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot', 'miss-islington'])
-        self.assertEqual(get_checked_usernames(usernames),
-                         frozenset(['brettcannon']))
-
-    @mock.patch.dict(os.environ, {'CLA_IGNORED_USERNAMES': 'bedevere-bot, miss-islington'})
-    def test_comma_separated_ignore_list_with_spaces(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot', 'miss-islington'])
-        self.assertEqual(get_checked_usernames(usernames),
-                         frozenset(['brettcannon']))
-
-    @mock.patch.dict(os.environ,
-                     {'CLA_IGNORED_USERNAMES': 'bedevere-bot, Miss-Islington'})
-    def test_ignore_list_ignore_case(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot', 'miss-islington'])
-        self.assertEqual(get_checked_usernames(usernames),
-                         frozenset(['brettcannon']))

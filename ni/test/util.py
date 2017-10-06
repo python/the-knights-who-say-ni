@@ -97,6 +97,7 @@ class FakeServerHost(ni_abc.ServerHost):
     auth_token = 'some_auth_token'
     secret = None
     user_agent_name = 'Testing-Agent'
+    trusted_usernames = ''
 
     def port(self):
         """Specify the port to bind the listening socket to."""
@@ -120,6 +121,16 @@ class FakeServerHost(ni_abc.ServerHost):
             self.logged.append(message)
         except AttributeError:
             self.logged = [message]
+
+    def trusted_users(self):
+        return frozenset(self.trusted_usernames)
+
+    def usernames_to_check(self, all_usernames):
+        """Return a list of users to be checked for CLA.
+
+        Exclude users who are in the trusted list.
+        """
+        return all_usernames - self.trusted_users()
 
 
 class TestCase(unittest.TestCase):
