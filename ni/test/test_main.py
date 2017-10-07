@@ -117,3 +117,106 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(request))
         # Fails due to secret being provided but response not signed.
         self.assertEqual(response.status, 500)
+
+    def test_no_trusted_users(self):
+        usernames = ['miss-islington', 'bedevere-bot']
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = ''
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset(usernames))
+        self.assertEqual(contrib.status, status)
+
+    def test_not_comma_separated_trusted_users(self):
+        usernames = ['miss-islington', 'bedevere-bot']
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = 'bedevere-bot'
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset(['miss-islington']))
+
+    def test_comma_separated_trusted_users(self):
+        usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = 'bedevere-bot,miss-islington'
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset(['brettcannon']))
+
+    def test_comma_separated_trusted_users_with_spaces(self):
+        usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
+
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = 'bedevere-bot, miss-islington'
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset(['brettcannon']))
+
+    def test_trusted_users_ignored_case(self):
+        usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
+
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = 'bedevere-bot, Miss-Islington'
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset(['brettcannon']))
+
+    def test_no_usernames(self):
+        usernames = []
+        status = ni_abc.Status.not_signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = 'bedevere-bot, miss-islington'
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset([]))
+        self.assertEqual(contrib.status, status)
+
+    def test_all_trusted_users(self):
+        usernames = ['bedevere-bot', 'miss-islington']
+        status = ni_abc.Status.signed
+        server = util.FakeServerHost()
+        server.trusted_usernames = 'bedevere-bot, miss-islington'
+        cla = FakeCLAHost(status)
+        contrib = FakeContribHost(usernames)
+        request = util.FakeRequest()
+        with mock.patch('ni.__main__.ContribHost', contrib):
+            responder = __main__.handler(util.FakeSession, server, cla)
+            response = self.run_awaitable(responder(request))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(cla.usernames, frozenset([]))
+        self.assertEqual(contrib.status, status)

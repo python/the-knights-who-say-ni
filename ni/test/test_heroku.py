@@ -3,7 +3,8 @@ import io
 import os
 import random
 import unittest
-import unittest.mock as mock
+
+from unittest import mock
 
 from .. import heroku
 
@@ -65,39 +66,12 @@ class HerokuTests(unittest.TestCase):
             self.server.log(message)
         self.assertEqual(stderr.getvalue(), message + "\n")
 
+    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': "miss-islington,bedevere-bot"})
     def test_trusted_users(self):
-        trusted_users = "miss-islington,bedevere-bot,the-knights-who-say-ni"
-        os.environ["CLA_TRUSTED_USERS"] = trusted_users
         self.assertEqual(self.server.trusted_users(),
-                         frozenset(["miss-islington",
-                                    "bedevere-bot",
-                                    "the-knights-who-say-ni"])
+                         frozenset(["miss-islington", "bedevere-bot"])
                          )
 
+    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': ""})
     def test_no_trusted_users(self):
-        usernames = frozenset(['miss-islington', 'bedevere-bot'])
-        self.assertEqual(self.server.usernames_to_check(usernames), usernames)
-
-    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': 'bedevere-bot'})
-    def test_not_comma_separated_ignore_list(self):
-        usernames = frozenset(['miss-islington', 'bedevere-bot'])
-        self.assertEqual(self.server.usernames_to_check(usernames),
-                         frozenset(['miss-islington']))
-
-    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': 'bedevere-bot,miss-islington'})
-    def test_comma_separated_ignore_list(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot', 'miss-islington'])
-        self.assertEqual(self.server.usernames_to_check(usernames),
-                         frozenset(['brettcannon']))
-
-    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': 'bedevere-bot, miss-islington'})
-    def test_comma_separated_ignore_list_with_spaces(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot', 'miss-islington'])
-        self.assertEqual(self.server.usernames_to_check(usernames),
-                         frozenset(['brettcannon']))
-
-    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': 'bedevere-bot, Miss-Islington'})
-    def test_ignore_list_ignore_case(self):
-        usernames = frozenset(['brettcannon', 'bedevere-bot', 'miss-islington'])
-        self.assertEqual(self.server.usernames_to_check(usernames),
-                         frozenset(['brettcannon']))
+        self.assertEqual(self.server.trusted_users(), frozenset({''}))

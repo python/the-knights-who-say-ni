@@ -123,14 +123,8 @@ class FakeServerHost(ni_abc.ServerHost):
             self.logged = [message]
 
     def trusted_users(self):
-        return frozenset(self.trusted_usernames)
-
-    def usernames_to_check(self, all_usernames):
-        """Return a list of users to be checked for CLA.
-
-        Exclude users who are in the trusted list.
-        """
-        return all_usernames - self.trusted_users()
+        return frozenset(frozenset([trusted.strip().lower()
+                for trusted in self.trusted_usernames.split(",")]))
 
 
 class TestCase(unittest.TestCase):

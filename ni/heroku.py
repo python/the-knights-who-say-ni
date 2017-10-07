@@ -40,16 +40,7 @@ class Host(ni_abc.ServerHost):
 
         Trusted users will not be checked for CLA.
         """
-        cla_trusted_users = os.environ.get('CLA_TRUSTED_USERS')
-        if cla_trusted_users:
-            return frozenset([trusted.strip().lower()
-                    for trusted in cla_trusted_users.split(",")])
-        return frozenset()
+        cla_trusted_users = os.environ.get('CLA_TRUSTED_USERS', '')
 
-    def usernames_to_check(self,
-                           all_usernames: AbstractSet[str]) -> AbstractSet[str]:
-        """Return a list of users to be checked for CLA.
-
-        Exclude users who are in the trusted list.
-        """
-        return all_usernames - self.trusted_users()
+        return frozenset([trusted.strip().lower()
+                for trusted in cla_trusted_users.split(",")])

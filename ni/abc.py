@@ -66,15 +66,6 @@ class ServerHost(abc.ABC):
         """
         return frozenset()
 
-    @abc.abstractmethod
-    def usernames_to_check(self,
-                           all_usernames:AbstractSet[str]) -> AbstractSet[str]:
-        """Return a list of users to be checked for CLA.
-
-        Exclude users who are in the trusted list.
-        """
-        raise NotImplementedError
-
 
 class ContribHost(abc.ABC):
 
