@@ -86,6 +86,9 @@ CLA).
 
 ## Deployment
 ### Running on Heroku
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/python/the-knights-who-say-ni)
+
 1. Create Heroku project
 2. Set the `GH_AUTH_TOKEN` environment variable to the GitHub oauth
    token to be used by the bot
