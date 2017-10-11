@@ -1,0 +1,7 @@
+{
+  "name": "The Knights Who Say 'Ni'!",
+  "description": "CLA enforcement bot for Python organization projects.",
+  "repository": "https://github.com/python/the-knights-who-say-ni",
+  "logo": "https://avatars1.githubusercontent.com/u/18121554?v=4&s=32",
+  "keywords": ["CLA enforcement"]
+}
