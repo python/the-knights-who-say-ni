@@ -97,6 +97,7 @@ class FakeServerHost(ni_abc.ServerHost):
     auth_token = 'some_auth_token'
     secret = None
     user_agent_name = 'Testing-Agent'
+    trusted_usernames = ''
 
     def port(self):
         """Specify the port to bind the listening socket to."""
@@ -120,6 +121,10 @@ class FakeServerHost(ni_abc.ServerHost):
             self.logged.append(message)
         except AttributeError:
             self.logged = [message]
+
+    def trusted_users(self):
+        return frozenset(frozenset([trusted.strip().lower()
+                for trusted in self.trusted_usernames.split(",")]))
 
 
 class TestCase(unittest.TestCase):

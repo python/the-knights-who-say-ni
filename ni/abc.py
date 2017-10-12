@@ -1,5 +1,4 @@
 import abc
-import asyncio
 import enum
 import http
 from typing import AbstractSet, Any, Optional, Tuple
@@ -58,6 +57,14 @@ class ServerHost(abc.ABC):
     @abc.abstractmethod
     def log(self, message: str) -> None:
         """Log the message."""
+
+    @abc.abstractmethod
+    def trusted_users(self) -> AbstractSet[str]:
+        """Return a list of trusted users.
+
+        Trusted users will not be checked for CLA.
+        """
+        return frozenset()
 
 
 class ContribHost(abc.ABC):

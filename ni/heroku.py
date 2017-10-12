@@ -1,7 +1,7 @@
 import os
 import sys
 import traceback
-from typing import Optional
+from typing import AbstractSet, Optional
 
 from . import abc as ni_abc
 
@@ -34,3 +34,13 @@ class Host(ni_abc.ServerHost):
     def log(self, message: str) -> None:
         """Log a message to stderr."""
         print(message, file=sys.stderr)
+
+    def trusted_users(self) -> AbstractSet[str]:
+        """Return a list of trusted users.
+
+        Trusted users will not be checked for CLA.
+        """
+        cla_trusted_users = os.environ.get('CLA_TRUSTED_USERS', '')
+
+        return frozenset([trusted.strip().lower()
+                for trusted in cla_trusted_users.split(",")])

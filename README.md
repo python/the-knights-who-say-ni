@@ -84,6 +84,10 @@ occurring without being given something (in the film it's the knights
 requiring a shrubbery, in real life it's lawyers requiring a signed
 CLA).
 
+## Trusted Users List
+Users in the Trusted Users List will not be checked for CLA.  This can be
+useful if the user is a bot or an app.
+
 ## Deployment
 ### Running on Heroku
 
@@ -93,6 +97,8 @@ CLA).
 2. Set the `GH_AUTH_TOKEN` environment variable to the GitHub oauth
    token to be used by the bot
 3. Set up the Heroku project to get the code for the bot
+4. Trusted users can be added to the `CLA_TRUSTED_USERS` environment variable
+   as comma-separated list.
 
 ### Adding to a GitHub repository (Python-specific instructions)
 1. Add the appropriate labels (`CLA signed` and `CLA not signed`)

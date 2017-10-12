@@ -4,6 +4,8 @@ import os
 import random
 import unittest
 
+from unittest import mock
+
 from .. import heroku
 
 
@@ -63,3 +65,13 @@ class HerokuTests(unittest.TestCase):
         with contextlib.redirect_stderr(stderr):
             self.server.log(message)
         self.assertEqual(stderr.getvalue(), message + "\n")
+
+    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': "miss-islington,bedevere-bot"})
+    def test_trusted_users(self):
+        self.assertEqual(self.server.trusted_users(),
+                         frozenset(["miss-islington", "bedevere-bot"])
+                         )
+
+    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': ""})
+    def test_no_trusted_users(self):
+        self.assertEqual(self.server.trusted_users(), frozenset({''}))
