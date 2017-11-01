@@ -1,5 +1,5 @@
 aiohttp==2.3.2
-async-timeout==1.4.0
+async-timeout==2.0.0
 chardet==3.0.4
 gidgethub==2.4.1
 multidict==3.2.0
