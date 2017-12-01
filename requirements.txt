@@ -2,6 +2,6 @@ aiohttp==2.3.5
 async-timeout==2.0.0
 chardet==3.0.4
 gidgethub==2.4.1
-multidict==3.3.0
+multidict==3.3.2
 uritemplate==3.0.0
 yarl==0.13.0
