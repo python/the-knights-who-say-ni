@@ -63,7 +63,7 @@ to rectify this issue.
 """
 
 
-GITHUB_EMAIL = 'noreply@github.com'  # Normalized for easy comparisons.
+GITHUB_EMAIL = 'noreply@github.com'.lower()  # Normalized for easy comparisons.
 
 
 @enum.unique
