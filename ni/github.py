@@ -34,6 +34,10 @@ contribution by verifying you have signed the \
 
 {body}
 
+When your account is ready, please add a comment in this pull request
+and a Python core developer will remove the `CLA not signed` label
+to make the bot check again.
+
 Thanks again to your contribution and we look forward to looking at it!
 """
 
