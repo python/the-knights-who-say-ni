@@ -46,7 +46,8 @@ class GitHubTests(util.TestCase):
 
     acceptable = {github.PullRequestEvent.opened,
                   github.PullRequestEvent.unlabeled,
-                  github.PullRequestEvent.synchronize}
+                  github.PullRequestEvent.synchronize,
+                  github.IssueCommentEvent.created}
 
     @classmethod
     def setUpClass(cls):
@@ -55,6 +56,7 @@ class GitHubTests(util.TestCase):
         cls.unlabeled_example = example('unlabeled.json')
         cls.synchronize_example = example('synchronize.json')
         cls.commits_example = example('commits.json')
+        cls.comment_created_example = example('comment_created.json')
         cls.commits_url = 'https://api.github.com/repos/Microsoft/Pyjion/pulls/109/commits'
         cls.issues_example = example('issues.json')
         cls.issues_url = 'https://api.github.com/repos/Microsoft/Pyjion/issues/109'
@@ -82,8 +84,8 @@ class GitHubTests(util.TestCase):
                                                    request, None))
 
     def test_process_skipping(self):
-        # Only create a ContibHost object if the PR is opened, unlabeled, or
-        # synchronized.
+        # Only create a ContibHost object if the PR is opened, unlabeled,
+        # synchronized, or Issue comment created
         for event in github.PullRequestEvent:
             if event in self.acceptable:
                 continue
@@ -124,6 +126,33 @@ class GitHubTests(util.TestCase):
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
                                                         request, None))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
+
+    def test_process_issue_comment_created(self):
+        request = util.FakeRequest(self.comment_created_example)
+        with self.assertRaises(ni_abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                   request, None))
+        self.assertEqual(cm.exception.response.status, 200)
+
+    def test_process_recheck_issue_comment_created_cla_signed(self):
+        # if recheck is issued, and CLA is already signed, don't do anything
+        cla_signed_example = copy.deepcopy(self.comment_created_example)
+        cla_signed_example["comment"]["body"] = "@the-knights-who-say-ni recheck"
+        request = util.FakeRequest(cla_signed_example)
+        with self.assertRaises(ni_abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                   request, None))
+        self.assertEqual(cm.exception.response.status, 200)
+
+    def test_process_recheck_issue_comment_created_cla_not_signed(self):
+        # if recheck is issued, and CLA is not signed yet, remove the CLA signed label
+        cla_signed_example = copy.deepcopy(self.comment_created_example)
+        cla_signed_example["comment"]["body"] = "@the-knights-who-say-ni recheck"
+        request = util.FakeRequest(cla_signed_example)
+        with self.assertRaises(ni_abc.ResponseExit) as cm:
+            self.run_awaitable(github.Host.process(util.FakeServerHost(),
+                                                   request, None))
+        self.assertEqual(cm.exception.response.status, 200)
 
     def test_usernames(self):
         # Should grab logins from the creator of the PR, and both the author

@@ -1,15 +1,11 @@
 import asyncio
 import enum
 import http
-from http import client
-import json
-import operator
 import random
-from typing import AbstractSet, Any, Dict, Optional
-from urllib import parse
+from typing import AbstractSet, Any, Dict, Optional, Union
 
 import aiohttp
-from aiohttp import hdrs, web
+from aiohttp import web
 from gidgethub.aiohttp import GitHubAPI
 from gidgethub import sansio
 import uritemplate
@@ -34,9 +30,9 @@ contribution by verifying you have signed the \
 
 {body}
 
-When your account is ready, please add a comment in this pull request
-and a Python core developer will remove the `CLA not signed` label
-to make the bot check again.
+After waiting for at least one business day, you can ask me to recheck your CLA
+record by saying: `@the-knights-who-say-ni recheck`. Please only do this *once per
+day*!
 
 Thanks again for your contribution, we look forward to reviewing it!
 """
@@ -79,6 +75,14 @@ class PullRequestEvent(enum.Enum):
     synchronize = "synchronize"
 
 
+@enum.unique
+class IssueCommentEvent(enum.Enum):
+    # https://developer.github.com/v3/activity/events/types/#issuecommentevent
+    created = "created"
+    edited = "edited"
+    deleted = "deleted"
+
+
 class Host(ni_abc.ContribHost):
 
     """Implement a webhook for GitHub pull requests."""
@@ -87,10 +91,12 @@ class Host(ni_abc.ContribHost):
 
     _useful_actions =  {PullRequestEvent.opened.value,
                         PullRequestEvent.unlabeled.value,
-                        PullRequestEvent.synchronize.value}
+                        PullRequestEvent.synchronize.value,
+                        IssueCommentEvent.created.value
+                        }
 
     def __init__(self, server: ni_abc.ServerHost, client: aiohttp.ClientSession,
-                 event: PullRequestEvent,
+                 event: Union[PullRequestEvent, IssueCommentEvent],
                  request: JSONDict) -> None:
         """Represent a contribution."""
         self.server = server
@@ -110,7 +116,7 @@ class Host(ni_abc.ContribHost):
             # A ping event; nothing to do.
             # https://developer.github.com/webhooks/#ping-event
             raise ni_abc.ResponseExit(status=http.HTTPStatus.OK)
-        elif event.event != "pull_request":
+        elif event.event != "pull_request" and event.event != "issue_comment":
             # Only happens if GitHub is misconfigured to send the wrong events.
             raise TypeError(f"don't know how to handle a {event.event!r} event")
         elif event.data['action'] not in cls._useful_actions:
@@ -127,6 +133,12 @@ class Host(ni_abc.ContribHost):
             if not label.startswith(LABEL_PREFIX):
                 raise ni_abc.ResponseExit(status=http.HTTPStatus.NO_CONTENT)
             return cls(server, client, PullRequestEvent.unlabeled, event.data)
+        elif event.data['action'] == IssueCommentEvent.created.value:
+            gh = GitHubAPI(client, "the-knights-who-say-ni",
+                           oauth_token=server.contrib_auth_token())
+            await cls.recheck_command(event, gh)
+            raise ni_abc.ResponseExit(status=http.HTTPStatus.OK)
+
         else:  # pragma: no cover
             # Should never happen.
             raise TypeError(f"don't know how to handle a {event.data['action']!r} action")
@@ -238,3 +250,13 @@ class Host(ni_abc.ContribHost):
             # Should never be reached.
             msg = 'do not know how to update a PR for {}'.format(self.event)
             raise RuntimeError(msg)
+
+    @classmethod
+    async def recheck_command(cls, event: sansio.Event, gh: GitHubAPI) -> None:
+        comment = event.data['comment']['body']
+        if comment == "@the-knights-who-say-ni recheck":
+            cla_not_signed = any(label['name'] == NO_CLA for label in
+                                 event.data['issue']['labels'])
+            if cla_not_signed:
+                await gh.delete(
+                    f"/repos/python/cpython/issues/{event.data['issue']['number']}/labels/{NO_CLA}")
