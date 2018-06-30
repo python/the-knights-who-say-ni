@@ -1,1 +1,1 @@
-web: python3.6 -m ni
+web: python3 -m ni
