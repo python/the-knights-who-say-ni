@@ -1,5 +1,4 @@
 """Implement a server to check if a contribution is covered by a CLA(s)."""
-import asyncio
 import http
 
 from typing import Awaitable, Callable
@@ -44,10 +43,9 @@ def handler(create_client: Callable[[], aiohttp.ClientSession], server: ni_abc.S
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    app = web.Application(loop=loop)
+    app = web.Application()
     server = ServerHost()
     cla_records = CLAHost(server)
     app.router.add_route(*ContribHost.route,
-                         handler(lambda: aiohttp.ClientSession(loop=loop), server, cla_records))
+                         handler(lambda: aiohttp.ClientSession(), server, cla_records))
     web.run_app(app, port=server.port())
