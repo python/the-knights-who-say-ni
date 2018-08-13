@@ -38,8 +38,7 @@ When your account is ready, please add a comment in this pull request
 and a Python core developer will remove the `CLA not signed` label
 to make the bot check again.
 
-You can [check yourself](https://devguide.python.org/committing.html#checking-if-the-cla-has-been-received)
-to see if the CLA has been received.
+You can [check yourself](https://check-python-cla.herokuapp.com/) to see if the CLA has been received.
 
 Thanks again for your contribution, we look forward to reviewing it!
 """
