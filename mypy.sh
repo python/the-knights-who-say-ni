@@ -1,2 +1,3 @@
 #!/bin/sh
-python3 -m mypy --strict-optional --ignore-missing-imports --warn-unused-ignores --warn-redundant-casts --disallow-untyped-defs --disallow-untyped-calls ni/*.py
+# Add in `--disallow-untyped-calls` once aiohttp is fully typed.
+python3 -m mypy --strict-optional --ignore-missing-imports --warn-unused-ignores --warn-redundant-casts --disallow-untyped-defs ni/*.py
