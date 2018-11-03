@@ -39,11 +39,14 @@ You can [check yourself](https://check-python-cla.herokuapp.com/) to see if the 
 Thanks again for your contribution, we look forward to reviewing it!
 """
 
-NO_CLA_BODY = """Unfortunately our records indicate you have not signed the CLA. \
+NO_CLA_BODY = """Our records indicate we have not received your CLA. \
 For legal reasons we need you to sign this before we can look at your \
 contribution. Please follow \
 [the steps outlined in the CPython devguide](https://devguide.python.org/pullrequest/#licensing) \
 to rectify this issue.
+
+If you have recently signed the CLA, please wait at least one business day
+before our records are updated.
 """
 
 NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
