@@ -143,7 +143,7 @@ class Host(ni_abc.ContribHost):
             # When the author is missing there seems to typically be a
             # matching commit that **does** specify the author. (issue #56)
             if author:
-                author_login = author['login']
+                author_login = author.get('login')
                 if commit['commit']['author']['email'].lower() == GITHUB_EMAIL:
                     self.server.log("Ignoring GitHub-managed username: "
                                     + author_login)
@@ -152,7 +152,7 @@ class Host(ni_abc.ContribHost):
 
             committer = commit['committer']
             if committer:
-                committer_login = committer['login']
+                committer_login = committer.get('login')
                 if commit['commit']['committer']['email'].lower() == GITHUB_EMAIL:
                     self.server.log("Ignoring GitHub-managed username: "
                                     + committer_login)

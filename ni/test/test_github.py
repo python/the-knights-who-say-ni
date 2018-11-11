@@ -52,6 +52,7 @@ class GitHubTests(util.TestCase):
     def setUpClass(cls):
         github.EASTEREGG_PROBABILITY = 0.0
         cls.opened_example = example('opened.json')
+        cls.opened_no_login_info_example = example('pr_opened_commit_has_no_login.json')
         cls.unlabeled_example = example('unlabeled.json')
         cls.synchronize_example = example('synchronize.json')
         cls.commits_example = example('commits.json')
@@ -141,15 +142,15 @@ class GitHubTests(util.TestCase):
         self.assertEqual(got, frozenset(want))
 
     def test_usernames_empty(self):
-        # Handle the case where author and committer are both empty dicts
+        # Handle the case where author and committer are both empty dicts.
         responses = {("GET", self.commits_url): self.empty_commits_example}
         session = util.FakeSession(responses=responses)
         contrib = github.Host(util.FakeServerHost(),
                               session,
                               github.PullRequestEvent.opened,
-                              self.opened_example)
+                              self.opened_no_login_info_example)
         got = self.run_awaitable(contrib.usernames())
-        want = {'brettcannon'}
+        want = {'xpvpc'}
         self.assertEqual(got, frozenset(want))
 
     def test_labels_url(self):
