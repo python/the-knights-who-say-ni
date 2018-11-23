@@ -1,0 +1,46 @@
+[
+  {
+    "sha": "49c1db2a107c11c1124cd223f3c3d1de0c8d9036",
+    "commit": {
+      "author": {
+        "name": "xpvpc",
+        "email": "",
+        "date": "2018-02-16T09:46:49Z"
+      },
+      "committer": {
+        "name": "xpvpc",
+        "email": "",
+        "date": "2018-02-16T09:46:49Z"
+      },
+      "message": "Fix typo in Python3.7 doc",
+      "tree": {
+        "sha": "1d21705d056279730612bbffbabb58879a0c7606",
+        "url": "https://api.github.com/repos/python/cpython/git/trees/1d21705d056279730612bbffbabb58879a0c7606"
+      },
+      "url": "https://api.github.com/repos/python/cpython/git/commits/49c1db2a107c11c1124cd223f3c3d1de0c8d9036",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/python/cpython/commits/49c1db2a107c11c1124cd223f3c3d1de0c8d9036",
+    "html_url": "https://github.com/python/cpython/commit/49c1db2a107c11c1124cd223f3c3d1de0c8d9036",
+    "comments_url": "https://api.github.com/repos/python/cpython/commits/49c1db2a107c11c1124cd223f3c3d1de0c8d9036/comments",
+    "author": {
+
+    },
+    "committer": {
+
+    },
+    "parents": [
+      {
+        "sha": "7745ec4e356ac1f4eaf43b155f4482c20a907d48",
+        "url": "https://api.github.com/repos/python/cpython/commits/7745ec4e356ac1f4eaf43b155f4482c20a907d48",
+        "html_url": "https://github.com/python/cpython/commit/7745ec4e356ac1f4eaf43b155f4482c20a907d48"
+      }
+    ]
+  }
+]
