@@ -66,10 +66,10 @@ class HerokuTests(unittest.TestCase):
             self.server.log(message)
         self.assertEqual(stderr.getvalue(), message + "\n")
 
-    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': "miss-islington,bedevere-bot"})
+    @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': "miss-islington,bedevere-bot,blurb-it[bot]"})
     def test_trusted_users(self):
         self.assertEqual(self.server.trusted_users(),
-                         frozenset(["miss-islington", "bedevere-bot"])
+                         frozenset(["miss-islington", "bedevere-bot", "blurb-it[bot]"])
                          )
 
     @mock.patch.dict(os.environ, {'CLA_TRUSTED_USERS': ""})
