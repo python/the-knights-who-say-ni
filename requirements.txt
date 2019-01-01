@@ -1,4 +1,4 @@
-aiohttp==3.4.4
+aiohttp==3.5.1
 async-timeout==3.0.1
 chardet==3.0.4
 gidgethub==3.0.0
