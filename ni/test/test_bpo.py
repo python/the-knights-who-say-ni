@@ -17,14 +17,14 @@ class OfflineTests(util.TestCase):
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
         with self.assertRaises(client.HTTPException):
-            self.run_awaitable(host.check(fake_session, ['brettcannon']))
+            self.run_awaitable(host.check(fake_session, {'brettcannon'}))
 
     def test_filter_extraneous_data(self):
         host = bpo.Host(util.FakeServerHost())
         response_data = {'web-flow': None, 'brettcannon': True}
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
-        result = self.run_awaitable(host.check(fake_session, ['brettcannon']))
+        result = self.run_awaitable(host.check(fake_session, {'brettcannon'}))
         self.assertEqual(result, ni_abc.Status.signed)
 
     def test_missing_data(self):
@@ -33,7 +33,7 @@ class OfflineTests(util.TestCase):
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
         with self.assertRaises(ValueError):
-            self.run_awaitable(host.check(fake_session, ['brettcannon']))
+            self.run_awaitable(host.check(fake_session, {'brettcannon'}))
 
     def test_bad_data(self):
         host = bpo.Host(util.FakeServerHost())
@@ -41,7 +41,7 @@ class OfflineTests(util.TestCase):
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
         with self.assertRaises(TypeError):
-            self.run_awaitable(host.check(fake_session, ['brettcannon']))
+            self.run_awaitable(host.check(fake_session, {'brettcannon'}))
 
 
 class SessionOnDemand:

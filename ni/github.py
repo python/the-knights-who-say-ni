@@ -1,15 +1,11 @@
 import asyncio
 import enum
 import http
-from http import client
-import json
-import operator
 import random
 from typing import AbstractSet, Any, Dict, Optional
-from urllib import parse
 
 import aiohttp
-from aiohttp import hdrs, web
+from aiohttp import web
 from gidgethub.aiohttp import GitHubAPI
 from gidgethub import sansio
 import uritemplate

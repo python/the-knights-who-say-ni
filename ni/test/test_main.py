@@ -1,5 +1,6 @@
 import http
 import unittest.mock as mock
+from typing import FrozenSet
 
 from .. import __main__
 from .. import abc as ni_abc
@@ -91,7 +92,6 @@ class HandlerTest(util.TestCase):
         self.assertEqual(server.logged_exc, exc)
 
     def test_contrib_secret_given(self):
-        usernames = ['brettcannon']
         status = ni_abc.Status.signed
         server = util.FakeServerHost()
         server.secret = "secret"
@@ -105,7 +105,6 @@ class HandlerTest(util.TestCase):
         self.assertEqual(response.status, 500)
 
     def test_contrib_secret_missing(self):
-        usernames = ['brettcannon']
         status = ni_abc.Status.signed
         server = util.FakeServerHost()
         cla = FakeCLAHost(status)
@@ -192,7 +191,7 @@ class HandlerTest(util.TestCase):
         self.assertEqual(cla.usernames, frozenset(['brettcannon']))
 
     def test_no_usernames(self):
-        usernames = []
+        usernames: FrozenSet[str] = frozenset()
         status = ni_abc.Status.not_signed
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, miss-islington'
@@ -203,7 +202,7 @@ class HandlerTest(util.TestCase):
             responder = __main__.handler(util.FakeSession, server, cla)
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
-        self.assertEqual(cla.usernames, frozenset([]))
+        self.assertEqual(cla.usernames, frozenset())
         self.assertEqual(contrib.status, status)
 
     def test_all_trusted_users(self):

@@ -1,14 +1,7 @@
-import asyncio
 import copy
-from http import client
 import json
 import pathlib
-import unittest
 from urllib import parse
-
-from aiohttp import hdrs, web
-from gidgethub import sansio
-import uritemplate
 
 from .. import abc as ni_abc
 from .. import github
@@ -72,7 +65,7 @@ class GitHubTests(util.TestCase):
         request.headers['x-github-event'] = 'ping'
         with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                   request, None))
+                                                   request, util.FakeSession()))
         self.assertEqual(cm.exception.response.status, 200)
 
     def test_wrong_event(self):
@@ -81,7 +74,7 @@ class GitHubTests(util.TestCase):
         request.headers['x-github-event'] = 'issue'
         with self.assertRaises(TypeError):
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                   request, None))
+                                                   request, util.FakeSession()))
 
     def test_process_skipping(self):
         # Only create a ContibHost object if the PR is opened, unlabeled, or
@@ -93,13 +86,13 @@ class GitHubTests(util.TestCase):
             request = util.FakeRequest(payload)
             with self.assertRaises(ni_abc.ResponseExit) as cm:
                 self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                       request, None))
+                                                       request, util.FakeSession()))
             self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_opened(self):
         request = util.FakeRequest(self.opened_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                        request, None))
+                                                        request, util.FakeSession()))
         self.assertEqual(result.event, github.PullRequestEvent.opened)
 
     def test_process_unlabeled(self):
@@ -108,7 +101,7 @@ class GitHubTests(util.TestCase):
         unlabeled_example_CLA['label']['name'] = github.CLA_OK
         request = util.FakeRequest(unlabeled_example_CLA)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                        request, None))
+                                                        request, util.FakeSession()))
         self.assertEqual(result.event, github.PullRequestEvent.unlabeled)
         # Test a non-CLA label being removed.
         unlabeled_example_other = copy.deepcopy(self.unlabeled_example)
@@ -118,13 +111,13 @@ class GitHubTests(util.TestCase):
         request = util.FakeRequest(unlabeled_example_other)
         with self.assertRaises(ni_abc.ResponseExit) as cm:
             self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                   request, None))
+                                                   request, util.FakeSession()))
         self.assertEqual(cm.exception.response.status, 204)
 
     def test_process_synchronize(self):
         request = util.FakeRequest(self.synchronize_example)
         result = self.run_awaitable(github.Host.process(util.FakeServerHost(),
-                                                        request, None))
+                                                        request, util.FakeSession()))
         self.assertEqual(result.event, github.PullRequestEvent.synchronize)
 
     def test_usernames(self):
