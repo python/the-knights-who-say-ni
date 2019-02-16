@@ -1,13 +1,16 @@
 import asyncio
 import json
 import unittest
+from typing import Dict, Optional, Tuple
 
+import aiohttp
 from aiohttp import web
+from multidict import CIMultiDict
 
 from .. import abc as ni_abc
 
 
-class FakeRequest:
+class FakeRequest(web.Request):
 
     """Provide a base class for faking requests.
 
@@ -16,12 +19,20 @@ class FakeRequest:
     http://aiohttp.readthedocs.org/en/stable/web_reference.html#aiohttp.web.Request
     """
 
+    @property
+    def content_type(self):
+        return self._content_type
+
+    @property
+    def headers(self):
+        return self._headers
+
     def __init__(self, payload={}, content_type='application/json'):
-        self.content_type = content_type
+        self._content_type = content_type
         self._payload = payload
-        self.headers = {"x-github-event": "pull_request",
-                        "x-github-delivery": "12345",
-                        "content-type": "application/json"}
+        self._headers = {"x-github-event": "pull_request",
+                         "x-github-delivery": "12345",
+                         "content-type": "application/json"}
 
     async def read(self):
         return json.dumps(self._payload).encode("utf-8")
@@ -29,14 +40,16 @@ class FakeRequest:
 
 class FakeResponse(web.Response):
 
-    headers = {"content-type": "application/json; charset=utf-8",
-               "x-ratelimit-limit": "10",
-               "x-ratelimit-remaining": "5",
-               "x-ratelimit-reset": "1"}
+    headers = CIMultiDict({
+        "content-type": "application/json; charset=utf-8",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "5",
+        "x-ratelimit-reset": "1",
+    })
     url = "test URL"
 
-    def __init__(self, *args, data=None, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, data=None, **kwargs):
+        super().__init__(**kwargs)
         self._data = data
 
     async def json(self):
@@ -49,10 +62,10 @@ class FakeResponse(web.Response):
         return json.dumps(self._data).encode("utf-8")
 
 
-class FakeSession:
+class FakeSession(aiohttp.ClientSession):
 
     def __init__(self, responses={}, response=None):
-        self._responses = {}
+        self._responses: Dict[Tuple[str, str], FakeResponse] = {}
         for request, data in responses.items():
             self._responses[request] = FakeResponse(status=200, data=data)
         if response is not None:
@@ -95,7 +108,7 @@ class FakeServerHost(ni_abc.ServerHost):
 
     _port = 1234
     auth_token = 'some_auth_token'
-    secret = None
+    secret: Optional[str] = None
     user_agent_name = 'Testing-Agent'
     trusted_usernames = ''
 

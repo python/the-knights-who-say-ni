@@ -13,6 +13,6 @@ install:
   - python3 -m pip install -r requirements.txt
 script:
   - python3 -m coverage run --branch -m unittest discover -t . -s ni/test/
-  - ./mypy.sh
+  - python3 -m mypy ni
 after_success:
   - codecov
