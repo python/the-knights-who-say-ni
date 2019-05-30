@@ -99,6 +99,7 @@ useful if the user is a bot or an app.
 3. Set up the Heroku project to get the code for the bot
 4. Trusted users can be added to the `CLA_TRUSTED_USERS` environment variable
    as comma-separated list.
+5. Create the `SENTRY_DSN` environment variable.
 
 ### Adding to a GitHub repository (Python-specific instructions)
 1. Add the appropriate labels (`CLA signed` and `CLA not signed`)
