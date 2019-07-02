@@ -77,7 +77,7 @@ class GitHubTests(util.TestCase):
                                                    request, util.FakeSession()))
 
     def test_process_skipping(self):
-        # Only create a ContibHost object if the PR is opened, unlabeled, or
+        # Only create a ContribHost object if the PR is opened, unlabeled, or
         # synchronized.
         for event in github.PullRequestEvent:
             if event in self.acceptable:
