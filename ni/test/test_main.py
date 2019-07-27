@@ -1,6 +1,6 @@
 import http
 import unittest.mock as mock
-from typing import FrozenSet
+from typing import AbstractSet, FrozenSet, Mapping
 
 from .. import __main__
 from .. import abc as ni_abc
@@ -53,7 +53,7 @@ class HandlerTest(util.TestCase):
     def test_response(self):
         # Success case.
         usernames = ['brettcannon']
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
@@ -92,7 +92,7 @@ class HandlerTest(util.TestCase):
         self.assertEqual(server.logged_exc, exc)
 
     def test_contrib_secret_given(self):
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.secret = "secret"
         cla = FakeCLAHost(problems)
@@ -105,7 +105,7 @@ class HandlerTest(util.TestCase):
         self.assertEqual(response.status, 500)
 
     def test_contrib_secret_missing(self):
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         cla = FakeCLAHost(problems)
         contrib = github.Host
@@ -119,7 +119,7 @@ class HandlerTest(util.TestCase):
 
     def test_no_trusted_users(self):
         usernames = ['miss-islington', 'bedevere-bot']
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.trusted_usernames = ''
         cla = FakeCLAHost(problems)
@@ -134,7 +134,7 @@ class HandlerTest(util.TestCase):
 
     def test_not_comma_separated_trusted_users(self):
         usernames = ['miss-islington', 'bedevere-bot']
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot'
         cla = FakeCLAHost(problems)
@@ -148,7 +148,7 @@ class HandlerTest(util.TestCase):
 
     def test_comma_separated_trusted_users(self):
         usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot,miss-islington'
         cla = FakeCLAHost(problems)
@@ -163,7 +163,7 @@ class HandlerTest(util.TestCase):
     def test_comma_separated_trusted_users_with_spaces(self):
         usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
 
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, miss-islington'
         cla = FakeCLAHost(problems)
@@ -178,7 +178,7 @@ class HandlerTest(util.TestCase):
     def test_trusted_users_ignored_case(self):
         usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
 
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, Miss-Islington'
         cla = FakeCLAHost(problems)
@@ -207,7 +207,7 @@ class HandlerTest(util.TestCase):
 
     def test_all_trusted_users(self):
         usernames = ['bedevere-bot', 'miss-islington']
-        problems = {}
+        problems: Mapping[ni_abc.Status, AbstractSet[str]] = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, miss-islington'
         cla = FakeCLAHost(problems)

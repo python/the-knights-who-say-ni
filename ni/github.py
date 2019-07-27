@@ -218,7 +218,7 @@ class Host(ni_abc.ContribHost):
             return None
 
         comments_url = self.request['pull_request']['comments_url']
-        problem_messages = defaultdict(str)
+        problem_messages: Dict[str, str] = defaultdict(str)
         for status, usernames in problems.items():
             problem_messages[status.name] = self._problem_message_template(
                 status

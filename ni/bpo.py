@@ -1,7 +1,7 @@
 from collections import defaultdict
 from http import client
 import json
-from typing import AbstractSet, Mapping
+from typing import AbstractSet, Mapping, Set
 
 import aiohttp
 
@@ -40,7 +40,7 @@ class Host(ni_abc.CLAHost):
             None: ni_abc.Status.username_not_found,
             False: ni_abc.Status.not_signed,
         }
-        problems = defaultdict(set)
+        problems: Mapping[ni_abc.Status, Set[str]] = defaultdict(set)
         for username, result in results.items():
             if result:
                 continue
