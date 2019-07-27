@@ -12,13 +12,13 @@ class FakeCLAHost(ni_abc.CLAHost):
 
     """Abstract base class for the CLA records platform."""
 
-    def __init__(self, status=None):
-        self._status = status
+    def __init__(self, problems=None):
+        self._problems = problems
 
     async def check(self, client, usernames):
         """Check if all of the specified usernames have signed the CLA."""
         self.usernames = usernames
-        return self._status
+        return self._problems
 
 
 class FakeContribHost(ni_abc.ContribHost):
@@ -43,9 +43,9 @@ class FakeContribHost(ni_abc.ContribHost):
         """Return an iterable of all the contributors' usernames."""
         return frozenset(self._usernames)
 
-    async def update(self, status):
-        """Update the contribution with the status of CLA coverage."""
-        self.status = status
+    async def update(self, problems):
+        """Update the contribution with the problems of CLA coverage."""
+        self.problems = problems
 
 
 class HandlerTest(util.TestCase):
@@ -53,9 +53,9 @@ class HandlerTest(util.TestCase):
     def test_response(self):
         # Success case.
         usernames = ['brettcannon']
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -63,7 +63,7 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
         self.assertEqual(cla.usernames, frozenset(usernames))
-        self.assertEqual(contrib.status, status)
+        self.assertEqual(contrib.problems, problems)
 
     def test_ResponseExit(self):
         # Test when ResponseExit is raised.
@@ -92,10 +92,10 @@ class HandlerTest(util.TestCase):
         self.assertEqual(server.logged_exc, exc)
 
     def test_contrib_secret_given(self):
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.secret = "secret"
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = github.Host
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -105,9 +105,9 @@ class HandlerTest(util.TestCase):
         self.assertEqual(response.status, 500)
 
     def test_contrib_secret_missing(self):
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = github.Host
         request = util.FakeRequest()
         request.headers["x-hub-signature"] = "sha1=signed"
@@ -119,10 +119,10 @@ class HandlerTest(util.TestCase):
 
     def test_no_trusted_users(self):
         usernames = ['miss-islington', 'bedevere-bot']
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.trusted_usernames = ''
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -130,14 +130,14 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
         self.assertEqual(cla.usernames, frozenset(usernames))
-        self.assertEqual(contrib.status, status)
+        self.assertEqual(contrib.problems, problems)
 
     def test_not_comma_separated_trusted_users(self):
         usernames = ['miss-islington', 'bedevere-bot']
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot'
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -148,10 +148,10 @@ class HandlerTest(util.TestCase):
 
     def test_comma_separated_trusted_users(self):
         usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot,miss-islington'
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -163,10 +163,10 @@ class HandlerTest(util.TestCase):
     def test_comma_separated_trusted_users_with_spaces(self):
         usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
 
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, miss-islington'
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -178,10 +178,10 @@ class HandlerTest(util.TestCase):
     def test_trusted_users_ignored_case(self):
         usernames = ['brettcannon', 'miss-islington', 'bedevere-bot']
 
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, Miss-Islington'
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -192,10 +192,10 @@ class HandlerTest(util.TestCase):
 
     def test_no_usernames(self):
         usernames: FrozenSet[str] = frozenset()
-        status = ni_abc.Status.not_signed
+        problems = {ni_abc.Status.not_signed: {'miss-islington'}}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, miss-islington'
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -203,14 +203,14 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
         self.assertEqual(cla.usernames, frozenset())
-        self.assertEqual(contrib.status, status)
+        self.assertEqual(contrib.problems, problems)
 
     def test_all_trusted_users(self):
         usernames = ['bedevere-bot', 'miss-islington']
-        status = ni_abc.Status.signed
+        problems = {}
         server = util.FakeServerHost()
         server.trusted_usernames = 'bedevere-bot, miss-islington'
-        cla = FakeCLAHost(status)
+        cla = FakeCLAHost(problems)
         contrib = FakeContribHost(usernames)
         request = util.FakeRequest()
         with mock.patch('ni.__main__.ContribHost', contrib):
@@ -218,4 +218,4 @@ class HandlerTest(util.TestCase):
             response = self.run_awaitable(responder(request))
         self.assertEqual(response.status, 200)
         self.assertEqual(cla.usernames, frozenset([]))
-        self.assertEqual(contrib.status, status)
+        self.assertEqual(contrib.problems, problems)

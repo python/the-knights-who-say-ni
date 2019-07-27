@@ -25,7 +25,7 @@ class OfflineTests(util.TestCase):
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
         result = self.run_awaitable(host.check(fake_session, {'brettcannon'}))
-        self.assertEqual(result, ni_abc.Status.signed)
+        self.assertEqual(result, {ni_abc.Status.username_not_found: {'web-flow'}})
 
     def test_missing_data(self):
         host = bpo.Host(util.FakeServerHost())
@@ -61,7 +61,7 @@ class SessionOnDemand:
         return self
 
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(loop=self.loop)
+        self.session = aiohttp.ClientSession(loop=self.loop, trust_env=True)
         self.session_ctx = await self.session.__aenter__()
         self.getter_ctx = self.session_ctx.get(self.url)
         return await self.getter_ctx.__aenter__()
@@ -85,19 +85,20 @@ class NetworkTests(util.TestCase):
         result = self.run_awaitable(
                 self.bpo.check(self.session, [self.signed_cla]),
                 loop=self.loop)
-        self.assertEqual(result, ni_abc.Status.signed)
+        self.assertEqual(result, {})
 
     def test_not_signed(self):
         usernames = [self.signed_cla, self.not_signed_cla]
         result = self.run_awaitable(self.bpo.check(self.session, usernames),
                                     loop=self.loop)
-        self.assertEqual(result, ni_abc.Status.not_signed)
+        self.assertEqual(result, {ni_abc.Status.not_signed: {self.not_signed_cla}})
 
     def test_missing_username(self):
-        usernames = [self.signed_cla, 'fdsfdsdooisadfsadnfasdfdsf']
+        username_not_found = 'fdsfdsdooisadfsadnfasdfdsf'
+        usernames = [self.signed_cla, username_not_found]
         result = self.run_awaitable(self.bpo.check(self.session, usernames),
                                     loop=self.loop)
-        self.assertEqual(result, ni_abc.Status.username_not_found)
+        self.assertEqual(result, {ni_abc.Status.username_not_found: {username_not_found}})
 
 
 if __name__ == '__main__':

@@ -2,7 +2,8 @@ import asyncio
 import enum
 import http
 import random
-from typing import AbstractSet, Any, Dict, Optional
+from collections import defaultdict
+from typing import AbstractSet, Any, Dict, Mapping, Optional
 
 import aiohttp
 from aiohttp import web
@@ -28,7 +29,9 @@ contribution by verifying you have signed the \
 [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
 (CLA).
 
-{body}
+{username_not_found}
+
+{not_signed}
 
 You can [check yourself](https://check-python-cla.herokuapp.com/) to see if the CLA has been received.
 
@@ -43,6 +46,8 @@ to rectify this issue.
 
 If you have recently signed the CLA, please wait at least one business day
 before our records are updated.
+
+Users: {}
 """
 
 NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
@@ -57,6 +62,8 @@ missing "GitHub Name" entry in your b.p.o account settings). This is necessary \
 for legal reasons before we can look at your contribution. Please follow \
 [the steps outlined in the CPython devguide](https://devguide.python.org/pullrequest/#licensing) \
 to rectify this issue.
+
+Users: {}
 """
 
 
@@ -174,15 +181,15 @@ class Host(ni_abc.ContribHost):
         cla_labels.sort()
         return cla_labels[0] if len(cla_labels) > 0 else None
 
-    async def set_label(self, status: ni_abc.Status) -> str:
+    async def set_label(self, problems: Mapping[ni_abc.Status, AbstractSet[str]]) -> str:
         """Set the label on the pull request based on the status of the CLA."""
         labels_url = await self.labels_url()
-        if status == ni_abc.Status.signed:
-            await self._gh.post(labels_url, data=[CLA_OK])
-            return CLA_OK
-        else:
+        if problems:
             await self._gh.post(labels_url, data=[NO_CLA])
             return NO_CLA
+        else:
+            await self._gh.post(labels_url, data=[CLA_OK])
+            return CLA_OK
 
     async def remove_label(self) -> Optional[str]:
         """Remove any CLA-related labels from the pull request."""
@@ -193,36 +200,49 @@ class Host(ni_abc.ContribHost):
         await self._gh.delete(deletion_url)
         return cla_label
 
-    async def comment(self, status: ni_abc.Status) -> Optional[str]:
-        """Add an appropriate comment relating to the CLA status."""
-        comments_url = self.request['pull_request']['comments_url']
-        if status == ni_abc.Status.signed:
-            return None
-        elif status == ni_abc.Status.not_signed:
+    def _problem_message_template(self, status: ni_abc.Status) -> str:
+        if status == ni_abc.Status.not_signed:
             if random.random() < EASTEREGG_PROBABILITY:  # pragma: no cover
-                message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY_EASTEREGG)
+                return NO_CLA_BODY_EASTEREGG
             else:
-                message = NO_CLA_TEMPLATE.format(body=NO_CLA_BODY)
+                return NO_CLA_BODY
         elif status == ni_abc.Status.username_not_found:
-            message = NO_CLA_TEMPLATE.format(body=NO_USERNAME_BODY)
+            return NO_USERNAME_BODY
         else:  # pragma: no cover
             # Should never be reached.
             raise TypeError("don't know how to handle {}".format(status))
+
+    async def comment(self, problems: Mapping[ni_abc.Status, AbstractSet[str]]) -> Optional[str]:
+        """Add an appropriate comment relating to the CLA status."""
+        if not problems:
+            return None
+
+        comments_url = self.request['pull_request']['comments_url']
+        problem_messages = defaultdict(str)
+        for status, usernames in problems.items():
+            problem_messages[status.name] = self._problem_message_template(
+                status
+            ).format(
+                ', '.join(f"@{username}" for username in usernames)
+            )
+
+        message = NO_CLA_TEMPLATE.format_map(problem_messages)
+
         await self._gh.post(comments_url, data={'body': message})
         return message
 
-    async def update(self, status: ni_abc.Status) -> None:
+    async def update(self, problems: Mapping[ni_abc.Status, AbstractSet[str]]) -> None:
         if self.event == PullRequestEvent.opened:
-            await self.set_label(status)
-            await self.comment(status)
+            await self.set_label(problems)
+            await self.comment(problems)
         elif self.event == PullRequestEvent.unlabeled:
             # The assumption is that a PR will almost always go from no CLA to
             # being cleared, so don't bug the user with what will probably
             # amount to a repeated message about lacking a CLA.
-            await self.set_label(status)
+            await self.set_label(problems)
         elif self.event == PullRequestEvent.synchronize:
             current_label = await self.current_label()
-            if status == ni_abc.Status.signed:
+            if not problems:
                 if current_label != CLA_OK:
                     await self.remove_label()
             elif current_label != NO_CLA:
@@ -230,7 +250,7 @@ class Host(ni_abc.ContribHost):
                     # Since there is a chance a new person was added to a PR
                     # which caused the change in status, a comment on how to
                     # resolve the CLA issue is probably called for.
-                    await self.comment(status)
+                    await self.comment(problems)
         else:  # pragma: no cover
             # Should never be reached.
             msg = 'do not know how to update a PR for {}'.format(self.event)

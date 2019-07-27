@@ -1,6 +1,7 @@
+from collections import defaultdict
 from http import client
 import json
-from typing import AbstractSet
+from typing import AbstractSet, Mapping
 
 import aiohttp
 
@@ -15,7 +16,7 @@ class Host(ni_abc.CLAHost):
         self.server = server
 
     async def check(self, aio_client: aiohttp.ClientSession,
-                    usernames: AbstractSet[str]) -> ni_abc.Status:
+                    usernames: AbstractSet[str]) -> Mapping[ni_abc.Status, AbstractSet[str]]:
         base_url = "https://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)
         self.server.log("Checking CLA status: " + url)
@@ -35,9 +36,14 @@ class Host(ni_abc.CLAHost):
         elif any(x not in (True, False, None) for x in status_results):
             raise TypeError("unexpected value in " + str(status_results))
 
-        if all(status_results):
-            return ni_abc.Status.signed
-        elif any(value is None for value in status_results):
-            return ni_abc.Status.username_not_found
-        else:
-            return ni_abc.Status.not_signed
+        failures = {
+            None: ni_abc.Status.username_not_found,
+            False: ni_abc.Status.not_signed,
+        }
+        problems = defaultdict(set)
+        for username, result in results.items():
+            if result:
+                continue
+            problems[failures[result]].add(username)
+
+        return problems
