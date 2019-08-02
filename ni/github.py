@@ -24,8 +24,8 @@ EASTEREGG_PROBABILITY = 0.01
 
 NO_CLA_TEMPLATE = """Hello, and thanks for your contribution!
 
-I'm a bot set up to make sure that the project can legally accept your \
-contribution by verifying you have signed the \
+I'm a bot set up to make sure that the project can legally accept this \
+contribution by verifying everyone involved has signed the \
 [PSF contributor agreement](https://www.python.org/psf/contrib/contrib-form/) \
 (CLA).
 
@@ -35,19 +35,22 @@ contribution by verifying you have signed the \
 
 You can [check yourself](https://check-python-cla.herokuapp.com/) to see if the CLA has been received.
 
-Thanks again for your contribution, we look forward to reviewing it!
+Thanks again for the contribution, we look forward to reviewing it!
 """
 
-NO_CLA_BODY = """Our records indicate we have not received your CLA. \
-For legal reasons we need you to sign this before we can look at your \
+NO_CLA_BODY = """## CLA Missing
+
+Our records indicate the following people have not signed the CLA:
+
+{}
+
+For legal reasons we need all the people listed to sign the CLA before we can look at your \
 contribution. Please follow \
 [the steps outlined in the CPython devguide](https://devguide.python.org/pullrequest/#licensing) \
 to rectify this issue.
 
 If you have recently signed the CLA, please wait at least one business day
 before our records are updated.
-
-Users: {}
 """
 
 NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
@@ -55,15 +58,18 @@ NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
 We also demand... [A SHRUBBERY!](https://www.youtube.com/watch?v=zIV4poUZAQo)
 """
 
-NO_USERNAME_BODY = """Unfortunately we couldn't find an account corresponding \
-to your GitHub username on [bugs.python.org](https://bugs.python.org/) \
-(b.p.o) to verify you have signed the CLA (this might be simply due to a \
-missing "GitHub Name" entry in your b.p.o account settings). This is necessary \
-for legal reasons before we can look at your contribution. Please follow \
+NO_USERNAME_BODY = """## Recognized GitHub username
+
+We couldn't find a [bugs.python.org](https://bugs.python.org/) (b.p.o) account corresponding \
+to the following GitHub usernames:
+
+{}
+
+This might be simply due to a missing "GitHub Name" entry in one's b.p.o account settings. \
+This is necessary \
+for legal reasons before we can look at this contribution. Please follow \
 [the steps outlined in the CPython devguide](https://devguide.python.org/pullrequest/#licensing) \
 to rectify this issue.
-
-Users: {}
 """
 
 
