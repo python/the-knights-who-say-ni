@@ -1,6 +1,7 @@
 import copy
 import json
 import pathlib
+import re
 from urllib import parse
 
 from .. import abc as ni_abc
@@ -279,11 +280,7 @@ class GitHubTests(util.TestCase):
         message = self.run_awaitable(contrib.comment({ni_abc.Status.username_not_found: {'username'}}))
         self.assertEqual(expected['body'], message)
 
-        # Test the edge case when multiple users didn't sign the CLA and are not found
-        expected['body'] = github.NO_CLA_TEMPLATE.format(
-            not_signed=github.NO_CLA_BODY.format(", ".join(f"@{u}" for u in {'ns_a', 'ns_b'})),
-            username_not_found=github.NO_USERNAME_BODY.format(", ".join(f"@{u}" for u in {'unf_a', 'unf_b'})),
-        )
+        # Test for when multiple users didn't sign the CLA and are not found
         responses[('POST', self.comments_url)] = expected
         session = util.FakeSession(responses)
         contrib = github.Host(util.FakeServerHost(),
@@ -296,7 +293,19 @@ class GitHubTests(util.TestCase):
                 ni_abc.Status.username_not_found: {'unf_a', 'unf_b'},
             })
         )
-        self.assertEqual(expected['body'], message)
+        self.assertTrue('@ns_a, @ns_b' in message or '@ns_b, @ns_a' in message)
+        self.assertTrue('@unf_a, @unf_b' in message or '@unf_b, @unf_a' in message)
+        regex_placeholder = 'USERS_REGEX'
+        escaped_no_cla = re.escape(github.NO_CLA_BODY.format(regex_placeholder))
+        self.assertRegex(
+            message,
+            re.compile(escaped_no_cla.replace(regex_placeholder, '@ns_(a|b), @ns_(a|b)'))
+        )
+        escaped_no_username = re.escape(github.NO_USERNAME_BODY.format(regex_placeholder))
+        self.assertRegex(
+            message,
+            re.compile(escaped_no_username.replace(regex_placeholder, '@unf_(a|b), @unf_(a|b)'))
+        )
 
     def test_update_opened(self):
         # Adding CLA status on an opened PR.
