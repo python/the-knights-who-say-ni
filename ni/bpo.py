@@ -1,6 +1,6 @@
 from http import client
 import json
-from typing import AbstractSet, Mapping, Set
+from typing import AbstractSet, Mapping, MutableMapping, Set
 
 import aiohttp
 
@@ -39,7 +39,7 @@ class Host(ni_abc.CLAHost):
             None: ni_abc.Status.username_not_found,
             False: ni_abc.Status.not_signed,
         }
-        problems: Mapping[ni_abc.Status, Set[str]] = {}
+        problems: MutableMapping[ni_abc.Status, Set[str]] = {}
         for username, result in results.items():
             if result in failures:
                 problems.setdefault(failures[result], set()).add(username)
