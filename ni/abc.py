@@ -106,4 +106,4 @@ class CLAHost(abc.ABC):
 
         Return a Mapping of problems and the associated list of usernames.
         """
-        return {Status.username_not_found: {'username'}}  # pragma: no cover
+        raise NotImplementedError
