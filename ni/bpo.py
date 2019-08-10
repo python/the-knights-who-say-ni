@@ -14,7 +14,7 @@ class Host(ni_abc.CLAHost):
     def __init__(self, server: ni_abc.ServerHost) -> None:
         self.server = server
 
-    async def check(self, aio_client: aiohttp.ClientSession,
+    async def problems(self, aio_client: aiohttp.ClientSession,
                     usernames: AbstractSet[str]) -> Mapping[ni_abc.Status, AbstractSet[str]]:
         base_url = "https://bugs.python.org/user?@template=clacheck&github_names="
         url = base_url + ','.join(usernames)

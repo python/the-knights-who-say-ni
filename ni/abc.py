@@ -100,7 +100,7 @@ class CLAHost(abc.ABC):
     """Abstract base class for the CLA records platform."""
 
     @abc.abstractmethod
-    async def check(self, client: aiohttp.ClientSession,
+    async def problems(self, client: aiohttp.ClientSession,
                     usernames: AbstractSet[str]) -> Mapping[Status, AbstractSet[str]]:
         """Check if all of the specified usernames have signed the CLA.
 

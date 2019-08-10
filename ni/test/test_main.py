@@ -15,7 +15,7 @@ class FakeCLAHost(ni_abc.CLAHost):
     def __init__(self, problems=None):
         self._problems = problems
 
-    async def check(self, client, usernames):
+    async def problems(self, client, usernames):
         """Check if all of the specified usernames have signed the CLA."""
         self.usernames = usernames
         return self._problems

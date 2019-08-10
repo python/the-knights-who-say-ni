@@ -17,14 +17,14 @@ class OfflineTests(util.TestCase):
         failed_response = util.FakeResponse(status=404)
         fake_session = util.FakeSession(response=failed_response)
         with self.assertRaises(client.HTTPException):
-            self.run_awaitable(host.check(fake_session, {'brettcannon'}))
+            self.run_awaitable(host.problems(fake_session, {'brettcannon'}))
 
     def test_filter_extraneous_data(self):
         host = bpo.Host(util.FakeServerHost())
         response_data = {'web-flow': None, 'brettcannon': True}
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
-        result = self.run_awaitable(host.check(fake_session, {'brettcannon'}))
+        result = self.run_awaitable(host.problems(fake_session, {'brettcannon'}))
         self.assertEqual(result, {ni_abc.Status.username_not_found: {'web-flow'}})
 
     def test_missing_data(self):
@@ -33,7 +33,7 @@ class OfflineTests(util.TestCase):
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
         with self.assertRaises(ValueError):
-            self.run_awaitable(host.check(fake_session, {'brettcannon'}))
+            self.run_awaitable(host.problems(fake_session, {'brettcannon'}))
 
     def test_bad_data(self):
         host = bpo.Host(util.FakeServerHost())
@@ -41,7 +41,7 @@ class OfflineTests(util.TestCase):
         fake_response = util.FakeResponse(data=json.dumps(response_data))
         fake_session = util.FakeSession(response=fake_response)
         with self.assertRaises(TypeError):
-            self.run_awaitable(host.check(fake_session, {'brettcannon'}))
+            self.run_awaitable(host.problems(fake_session, {'brettcannon'}))
 
 
 class SessionOnDemand:
@@ -61,7 +61,7 @@ class SessionOnDemand:
         return self
 
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(loop=self.loop, trust_env=True)
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.session_ctx = await self.session.__aenter__()
         self.getter_ctx = self.session_ctx.get(self.url)
         return await self.getter_ctx.__aenter__()
@@ -83,20 +83,20 @@ class NetworkTests(util.TestCase):
 
     def test_signed(self):
         result = self.run_awaitable(
-                self.bpo.check(self.session, [self.signed_cla]),
+                self.bpo.problems(self.session, [self.signed_cla]),
                 loop=self.loop)
         self.assertEqual(result, {})
 
     def test_not_signed(self):
         usernames = [self.signed_cla, self.not_signed_cla]
-        result = self.run_awaitable(self.bpo.check(self.session, usernames),
+        result = self.run_awaitable(self.bpo.problems(self.session, usernames),
                                     loop=self.loop)
         self.assertEqual(result, {ni_abc.Status.not_signed: {self.not_signed_cla}})
 
     def test_missing_username(self):
         username_not_found = 'fdsfdsdooisadfsadnfasdfdsf'
         usernames = [self.signed_cla, username_not_found]
-        result = self.run_awaitable(self.bpo.check(self.session, usernames),
+        result = self.run_awaitable(self.bpo.problems(self.session, usernames),
                                     loop=self.loop)
         self.assertEqual(result, {ni_abc.Status.username_not_found: {username_not_found}})
 
