@@ -1,6 +1,7 @@
 import copy
 import json
 import pathlib
+import re
 from urllib import parse
 
 from .. import abc as ni_abc
@@ -205,7 +206,7 @@ class GitHubTests(util.TestCase):
                               session,
                               github.PullRequestEvent.opened,
                               self.opened_example)
-        label = self.run_awaitable(contrib.set_label(ni_abc.Status.signed))
+        label = self.run_awaitable(contrib.set_label({}))
         self.assertEqual(label, github.CLA_OK)
 
 
@@ -215,9 +216,9 @@ class GitHubTests(util.TestCase):
                               session,
                               github.PullRequestEvent.opened,
                               self.opened_example)
-        label = self.run_awaitable(contrib.set_label(ni_abc.Status.not_signed))
+        label = self.run_awaitable(contrib.set_label({ni_abc.Status.not_signed: {'username'}}))
         self.assertEqual(label, github.NO_CLA)
-        self.run_awaitable(contrib.set_label(ni_abc.Status.username_not_found))
+        self.run_awaitable(contrib.set_label({ni_abc.Status.username_not_found: {'username'}}))
         self.assertEqual(label, github.NO_CLA)
 
     def test_remove_label(self):
@@ -249,34 +250,69 @@ class GitHubTests(util.TestCase):
                               util.FakeSession(),
                               github.PullRequestEvent.opened,
                               self.opened_example)
-        message = self.run_awaitable(contrib.comment(ni_abc.Status.signed))
+        message = self.run_awaitable(contrib.comment({}))
         self.assertIsNone(message)
 
         expected = {'body':
-                    github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)}
+                    github.NO_CLA_TEMPLATE.format(
+                        not_signed=github.NO_CLA_BODY.format('@username'),
+                        username_not_found='',
+                    )}
         responses = {('POST', self.comments_url): expected}
         session = util.FakeSession(responses)
         contrib = github.Host(util.FakeServerHost(),
                               session,
                               github.PullRequestEvent.opened,
                               self.opened_example)
-        message = self.run_awaitable(contrib.comment(ni_abc.Status.not_signed))
+        message = self.run_awaitable(contrib.comment({ni_abc.Status.not_signed: {'username'}}))
         self.assertEqual(message, expected['body'])
 
         expected['body'] = github.NO_CLA_TEMPLATE.format(
-                body=github.NO_USERNAME_BODY)
+            not_signed='',
+            username_not_found=github.NO_USERNAME_BODY.format('@username'),
+        )
         responses[('POST', self.comments_url)] = expected
         session = util.FakeSession(responses)
         contrib = github.Host(util.FakeServerHost(),
                               session,
                               github.PullRequestEvent.opened,
                               self.opened_example)
-        message = self.run_awaitable(contrib.comment(ni_abc.Status.username_not_found))
+        message = self.run_awaitable(contrib.comment({ni_abc.Status.username_not_found: {'username'}}))
         self.assertEqual(expected['body'], message)
+
+        # Test for when multiple users didn't sign the CLA and are not found
+        responses[('POST', self.comments_url)] = expected
+        session = util.FakeSession(responses)
+        contrib = github.Host(util.FakeServerHost(),
+                              session,
+                              github.PullRequestEvent.opened,
+                              self.opened_example)
+        message = self.run_awaitable(
+            contrib.comment({
+                ni_abc.Status.not_signed: {'ns_a', 'ns_b'},
+                ni_abc.Status.username_not_found: {'unf_a', 'unf_b'},
+            })
+        )
+        self.assertTrue('@ns_a, @ns_b' in message or '@ns_b, @ns_a' in message)
+        self.assertTrue('@unf_a, @unf_b' in message or '@unf_b, @unf_a' in message)
+        regex_placeholder = 'USERS_REGEX'
+        escaped_no_cla = re.escape(github.NO_CLA_BODY.format(regex_placeholder))
+        self.assertRegex(
+            message,
+            re.compile(escaped_no_cla.replace(regex_placeholder, '@ns_(a|b), @ns_(a|b)'))
+        )
+        escaped_no_username = re.escape(github.NO_USERNAME_BODY.format(regex_placeholder))
+        self.assertRegex(
+            message,
+            re.compile(escaped_no_username.replace(regex_placeholder, '@unf_(a|b), @unf_(a|b)'))
+        )
 
     def test_update_opened(self):
         # Adding CLA status on an opened PR.
-        comment = github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)
+        comment = github.NO_CLA_TEMPLATE.format(
+            not_signed=github.NO_CLA_BODY.format('@username'),
+            username_not_found='',
+        )
         responses = {('GET', self.issues_url): self.issues_example,
                    ('POST', self.labels_url): [github.NO_CLA],
                    ('POST', self.comments_url): {'body': comment}}
@@ -284,7 +320,7 @@ class GitHubTests(util.TestCase):
                               util.FakeSession(responses),
                               github.PullRequestEvent.opened,
                               self.opened_example)
-        self.noException(contrib.update(ni_abc.Status.not_signed))
+        self.noException(contrib.update({ni_abc.Status.not_signed: {'username'}}))
 
     def test_update_unlabeled(self):
         # Adding CLA status to a PR that just lost its CLA label.
@@ -294,7 +330,7 @@ class GitHubTests(util.TestCase):
                               util.FakeSession(responses),
                               github.PullRequestEvent.unlabeled,
                               self.unlabeled_example)
-        self.noException(contrib.update(ni_abc.Status.signed))
+        self.noException(contrib.update({}))
 
     def test_update_synchronize(self):
         # Update the PR after it's synchronized.
@@ -306,7 +342,7 @@ class GitHubTests(util.TestCase):
                               session,
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example)
-        self.noException(contrib.update(ni_abc.Status.signed))
+        self.noException(contrib.update({}))
         # CLA signed, but not labeled as such.
         responses[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
         session = util.FakeSession(responses)
@@ -322,7 +358,7 @@ class GitHubTests(util.TestCase):
                               session,
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example)
-        self.noException(contrib.update(ni_abc.Status.signed))
+        self.noException(contrib.update({}))
         # CLA not signed and already labeled as such.
         responses[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
         session = util.FakeSession(responses)
@@ -330,7 +366,7 @@ class GitHubTests(util.TestCase):
                               session,
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example)
-        self.noException(contrib.update(ni_abc.Status.not_signed))
+        self.noException(contrib.update({ni_abc.Status.not_signed: {'username'}}))
         # CLA not signed, but currently labeled as such.
         responses[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
         session = util.FakeSession(responses)
@@ -341,14 +377,17 @@ class GitHubTests(util.TestCase):
         deletion_url = self.run_awaitable(
                 contrib.labels_url(github.CLA_OK))
         responses[('DELETE', deletion_url)] = [github.CLA_OK]
-        comment = github.NO_CLA_TEMPLATE.format(body=github.NO_CLA_BODY)
+        comment = github.NO_CLA_TEMPLATE.format(
+            not_signed=github.NO_CLA_BODY.format('@username'),
+            username_not_found='',
+        )
         responses[('POST', self.comments_url)] = {'body': comment}
         session = util.FakeSession(responses)
         contrib = github.Host(util.FakeServerHost(),
                               session,
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example)
-        self.noException(contrib.update(ni_abc.Status.not_signed))
+        self.noException(contrib.update({ni_abc.Status.not_signed: {'username'}}))
         # No GitHub username, but already labeled as no CLA.
         responses[('GET', self.labels_url)] = [{'name': github.NO_CLA}]
         session = util.FakeSession(responses)
@@ -356,7 +395,7 @@ class GitHubTests(util.TestCase):
                               session,
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example)
-        self.noException(contrib.update(ni_abc.Status.username_not_found))
+        self.noException(contrib.update({ni_abc.Status.username_not_found: {'username'}}))
         # No GitHub username, but labeled as signed.
         responses[('GET', self.labels_url)] = [{'name': github.CLA_OK}]
         session = util.FakeSession(responses)
@@ -367,11 +406,14 @@ class GitHubTests(util.TestCase):
         deletion_url = self.run_awaitable(
                 contrib.labels_url(github.CLA_OK))
         responses[('DELETE', deletion_url)] = [github.CLA_OK]
-        comment = github.NO_CLA_TEMPLATE.format(body=github.NO_USERNAME_BODY)
+        comment = github.NO_CLA_TEMPLATE.format(
+            not_signed='',
+            username_not_found=github.NO_USERNAME_BODY.format('@username'),
+        )
         responses[('POST', self.comments_url)] = {'body': comment}
         session = util.FakeSession(responses)
         contrib = github.Host(util.FakeServerHost(),
                               session,
                               github.PullRequestEvent.synchronize,
                               self.synchronize_example)
-        self.noException(contrib.update(ni_abc.Status.username_not_found))
+        self.noException(contrib.update({ni_abc.Status.username_not_found: {'username'}}))

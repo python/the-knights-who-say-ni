@@ -1,7 +1,7 @@
 import abc
 import enum
 import http
-from typing import AbstractSet, Any, Optional, Tuple
+from typing import AbstractSet, Any, Mapping, Optional, Tuple
 
 # ONLY third-party libraries which won't break the abstraction promise may be
 # imported.
@@ -91,7 +91,7 @@ class ContribHost(abc.ABC):
         return frozenset()  # pragma: no cover
 
     @abc.abstractmethod
-    async def update(self, status: Status) -> None:
+    async def update(self, problems: Mapping[Status, AbstractSet[str]]) -> None:
         """Update the contribution with the status of CLA coverage."""
 
 
@@ -100,11 +100,10 @@ class CLAHost(abc.ABC):
     """Abstract base class for the CLA records platform."""
 
     @abc.abstractmethod
-    async def check(self, client: aiohttp.ClientSession,
-                    usernames: AbstractSet[str]) -> Status:
-        """Check if all of the specified usernames have signed the CLA."""
-        # While it would technically share more specific information if a
-        # mapping of {username: Status} was returned, the vast majority of
-        # cases will be for a single user and thus not worth the added
-        # complexity to need to worry about it.
-        return Status.username_not_found  # pragma: no cover
+    async def problems(self, client: aiohttp.ClientSession,
+                    usernames: AbstractSet[str]) -> Mapping[Status, AbstractSet[str]]:
+        """Check if all of the specified usernames have signed the CLA.
+
+        Return a Mapping of problems and the associated list of usernames.
+        """
+        raise NotImplementedError
