@@ -35,7 +35,7 @@ contribution by verifying everyone involved has signed the \
 
 You can [check yourself](https://check-python-cla.herokuapp.com/) to see if the CLA has been received.
 
-Thanks again for the contribution, we look forward to reviewing it!
+Thanks again for the contribution, we look forward to reviewing it! 🎄🐟
 """
 
 NO_CLA_BODY = """## CLA Missing
