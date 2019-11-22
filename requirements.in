@@ -2,4 +2,5 @@
 # for deployment is stored in `requirements.txt`.
 aiohttp
 gidgethub
-uritemplate
+sentry_sdk
+uritemplate.py
