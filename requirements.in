@@ -3,4 +3,4 @@
 aiohttp
 gidgethub
 sentry_sdk
-uritemplate.py
+uritemplate
