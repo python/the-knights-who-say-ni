@@ -13,7 +13,6 @@ gidgethub==3.1.0
 idna==2.8                 # via yarl
 multidict==4.5.2          # via aiohttp, yarl
 sentry-sdk==0.13.2
-uritemplate.py==3.0.2
-uritemplate==3.0.0        # via gidgethub, uritemplate.py
+uritemplate==3.0.0        # via gidgethub
 urllib3==1.25.7           # via sentry-sdk
 yarl==1.3.0               # via aiohttp
