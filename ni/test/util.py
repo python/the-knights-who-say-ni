@@ -64,6 +64,8 @@ class FakeResponse(web.Response):
 
 class FakeSession(aiohttp.ClientSession):
 
+    _connector = None
+
     def __init__(self, responses={}, response=None):
         self._responses: Dict[Tuple[str, str], FakeResponse] = {}
         for request, data in responses.items():
