@@ -21,6 +21,6 @@ install:
   - python3 -m pip install -r requirements.txt
 script:
   - python3 -m coverage run --branch -m unittest discover -t . -s ni/test/
-  - python3 -m mypy ni
+  - python3 -m mypy ni/*.py
 after_success:
   - codecov
