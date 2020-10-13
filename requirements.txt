@@ -16,7 +16,7 @@ idna==2.8                 # via yarl
 multidict==4.5.2          # via aiohttp, yarl
 pycparser==2.20           # via cffi
 pyjwt[crypto]==1.7.1      # via gidgethub
-sentry-sdk==0.17.8        # via -r requirements.in
+sentry_sdk==0.19.0        # via -r requirements.in
 six==1.14.0               # via cryptography
 uritemplate==3.0.1        # via -r requirements.in, gidgethub
 urllib3==1.25.7           # via sentry-sdk
