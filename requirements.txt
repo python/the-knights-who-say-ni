@@ -10,12 +10,12 @@ attrs==19.3.0             # via aiohttp
 certifi==2019.9.11        # via sentry-sdk
 cffi==1.14.0              # via cryptography
 chardet==3.0.4            # via aiohttp
-cryptography==3.2         # via pyjwt
-gidgethub==4.2.0          # via -r requirements.in
+cryptography==3.3.1       # via pyjwt
+gidgethub==5.0.0          # via -r requirements.in
 idna==2.8                 # via yarl
 multidict==4.5.2          # via aiohttp, yarl
 pycparser==2.20           # via cffi
-pyjwt[crypto]==1.7.1      # via gidgethub
+pyjwt[crypto]==2.0.0      # via gidgethub
 sentry-sdk==0.19.5        # via -r requirements.in
 six==1.14.0               # via cryptography
 uritemplate==3.0.1        # via -r requirements.in, gidgethub
