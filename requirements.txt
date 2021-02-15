@@ -30,7 +30,7 @@ pycparser==2.20
     # via cffi
 pyjwt[crypto]==2.0.0
     # via gidgethub
-sentry-sdk==0.19.5
+sentry_sdk==0.20.1
     # via -r requirements.in
 six==1.14.0
     # via cryptography
