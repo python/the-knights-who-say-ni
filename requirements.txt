@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
-aiohttp==3.6.3
+aiohttp==3.7.4
     # via -r requirements.in
 async-timeout==3.0.1
     # via aiohttp
@@ -34,6 +34,8 @@ sentry-sdk==0.20.3
     # via -r requirements.in
 six==1.14.0
     # via cryptography
+typing-extensions==3.7.4.3
+    # via aiohttp
 uritemplate==3.0.1
     # via
     #   -r requirements.in
