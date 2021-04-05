@@ -18,7 +18,7 @@ chardet==3.0.4
     # via aiohttp
 cryptography==3.3.2
     # via pyjwt
-gidgethub==5.0.0
+gidgethub==5.0.1
     # via -r requirements.in
 idna==2.8
     # via yarl
@@ -30,7 +30,7 @@ pycparser==2.20
     # via cffi
 pyjwt[crypto]==2.0.0
     # via gidgethub
-sentry_sdk==0.20.3
+sentry-sdk==0.20.3
     # via -r requirements.in
 six==1.14.0
     # via cryptography
