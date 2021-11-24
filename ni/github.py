@@ -229,7 +229,7 @@ class Host(ni_abc.ContribHost):
             problem_messages[status.name] = self._problem_message_template(
                 status
             ).format(
-                ', '.join(f"@{username}" for username in usernames)
+                ', '.join(f"**{username}**" for username in usernames)
             )
 
         message = NO_CLA_TEMPLATE.format_map(problem_messages)
