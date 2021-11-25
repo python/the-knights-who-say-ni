@@ -36,6 +36,11 @@ contribution by verifying everyone involved has signed the \
 You can [check yourself](https://check-python-cla.herokuapp.com/) to see if the CLA has been received.
 
 Thanks again for the contribution, we look forward to reviewing it!
+
+If this is your first time contributing to cpython, you may find the following resources helpful:
+- A [guide to writing Pull Requests to CPython](https://devguide.python.org/pullrequest/)
+- A [guide to writing tests for CPython](https://devguide.python.org/runtests/)
+- A [guide to writing documentation for CPython](https://devguide.python.org/documenting/)
 """
 
 NO_CLA_BODY = """## CLA Missing
