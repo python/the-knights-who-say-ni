@@ -50,7 +50,8 @@ contribution. Please follow \
 to rectify this issue.
 
 If you have recently signed the CLA, please wait at least one business day
-before our records are updated.
+before our records are updated. After our records are updated, please
+[check your username](https://check-python-cla.herokuapp.com/)
 """
 
 NO_CLA_BODY_EASTEREGG = NO_CLA_BODY + """
