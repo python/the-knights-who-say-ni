@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: master
+
+jobs:
+  test:
+    name: test w/ Python ${{ matrix.python-version }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install test deps
+        run: python3 -m pip install -U coverage mypy
+      - name: Install project deps
+        run: python3 -m pip install -r requirements.txt
+      
+      - name: Run mypy
+        run: python3 -m mypy ni/*.py
+      - name: Run tests
+        run: |
+          python3 -m coverage run --branch -m unittest discover -t . -s ni/test/
+          python3 -m coverage xml -o ./coverage.xml
+      - uses: codecov/codecov-action@v2
+        with:
+          file: ./coverage.xml
