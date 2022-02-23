@@ -6,9 +6,12 @@ Work done surrounding this project is governed by the
 
 ## Dependencies
 The `requirements.txt` file is frozen to the currently tested
-versions of `requirements.base`. To update, create a venv,
-run `python3 -m pip install -r requirements.base`, run all tests,
-and then update `requirements.txt` with the output from `pip freeze`.
+versions of `requirements.in`. To update, create a venv,
+install [`pip-tools`](https://pypi.org/project/pip-tools)
+run `python3 -m pip install -r requirements.txt`, run all tests,
+and then update `requirements.txt` with `pip-compile --upgrade` command.
+Execute `pip-sync` command and run tests again
+to make sure everything still works as expected.
 
 ## Testing
 ### Running tests
