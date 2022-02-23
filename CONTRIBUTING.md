@@ -8,9 +8,9 @@ Work done surrounding this project is governed by the
 The `requirements.txt` file is frozen to the currently tested
 versions of `requirements.in`. To update, create a venv,
 install [`pip-tools`](https://pypi.org/project/pip-tools)
-run `python3 -m pip install -r requirements.txt`, run all tests,
-and then update `requirements.txt` with `pip-compile --upgrade` command.
-Execute `pip-sync` command and run tests again
+run `python3 -m pip-sync`, run all tests, and then update 
+`requirements.txt` with `python3 -m pip-compile --upgrade` command.
+Execute `python3 -m pip-sync` command and run tests once again
 to make sure everything still works as expected.
 
 ## Testing
