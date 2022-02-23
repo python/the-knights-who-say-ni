@@ -88,7 +88,6 @@ class FakeSession(aiohttp.ClientSession):
     def request(self, method, url, headers=None, data=None):
         self.method = method
         self.url = url
-        self.headers = headers
         self.data = data
         try:
             self.next_response = self._responses[(method, url)]
