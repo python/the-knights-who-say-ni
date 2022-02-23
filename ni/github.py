@@ -169,13 +169,13 @@ class Host(ni_abc.ContribHost):
                     logins.add(committer_login)
         return frozenset(logins)
 
-    async def labels_url(self, label: str = None) -> str:
+    async def labels_url(self, label: Optional[str] = None) -> str:
         """Construct the URL to the label."""
         if not hasattr(self, '_labels_url'):
             issue_url = self.request['pull_request']['issue_url']
             issue_data = await self._gh.getitem(issue_url)
             self._labels_url = uritemplate.URITemplate(issue_data['labels_url'])
-        return self._labels_url.expand(name=label)
+        return self._labels_url.expand(name=label)  # type: ignore
 
     async def current_label(self) -> Optional[str]:
         """Return the current CLA-related label."""
