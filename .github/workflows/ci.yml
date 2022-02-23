@@ -3,7 +3,7 @@ name: ci
 on:
   pull_request:
   push:
-    branches: master
+  workflow_dispatch:
 
 jobs:
   test:
@@ -12,14 +12,22 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
 
       - name: Install test deps
-        run: python3 -m pip install -U coverage mypy
+        run: |
+          python3 -m pip install -U wheel
+          python3 -m pip install -U coverage mypy
       - name: Install project deps
         run: python3 -m pip install -r requirements.txt
       
