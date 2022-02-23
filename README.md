@@ -3,7 +3,7 @@ A bot to check if the author of a pull request to a
 [Python project](https://github.com/python) has signed the
 [PSF CLA](https://www.python.org/psf/contrib/contrib-form/).
 
-[![Build Status](https://travis-ci.org/python/the-knights-who-say-ni.svg?branch=master)](https://travis-ci.org/python/the-knights-who-say-ni)
+[![Build Status](https://github.com/python/the-knights-who-say-ni/workflows/ci/badge.svg?branch=master&event=push)](https://github.com/python/the-knights-who-say-ni/actions?query=workflow%3Aci)
 [![codecov.io](https://codecov.io/github/python/the-knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/python/the-knights-who-say-ni?branch=master)
 
 ## Why is this project necessary?
