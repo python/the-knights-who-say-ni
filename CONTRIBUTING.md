@@ -18,3 +18,5 @@ On a UNIX-based OS, simply run `test.sh`. On Windows, run
 ### Test coverage
 Because of the legal importance of this project doing its job
 correctly, 100% test coverage is always strived for.
+
+### This is a test PR, do not merge
