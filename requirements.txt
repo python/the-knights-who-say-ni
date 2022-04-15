@@ -10,6 +10,8 @@ aiosignal==1.2.0
     # via aiohttp
 async-timeout==4.0.2
     # via aiohttp
+asynctest==0.13.0
+    # via aiohttp
 attrs==21.4.0
     # via aiohttp
 certifi==2021.10.8
@@ -36,8 +38,13 @@ pycparser==2.21
     # via cffi
 pyjwt[crypto]==2.3.0
     # via gidgethub
-sentry-sdk==1.5.6
+sentry-sdk==1.5.10
     # via -r requirements.in
+typing-extensions==4.1.1
+    # via
+    #   aiohttp
+    #   async-timeout
+    #   yarl
 uritemplate==4.1.1
     # via
     #   -r requirements.in
