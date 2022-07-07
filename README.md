@@ -1,10 +1,20 @@
 # The Knights Who Say "Ni"!
+
+> **NOTE**: This project is no longer used by https://github.com/python/
+> and as such is no longer being maintained.
+>
+> The current CLA bot infrastructure is based on
+> [edgedb/cla-bot](https://github.com/edgedb/cla-bot/)
+> and lives at [apps/cpython-cla-bot](https://github.com/apps/cpython-cla-bot#-who-says-ekke-ekke-ekke-ekke-ptang-zoom-boing).
+> See [the discussion](https://discuss.python.org/t/14961) for more details.
+>
+> What follows is the original README with potentially outdated information.
+
+---
+
 A bot to check if the author of a pull request to a
 [Python project](https://github.com/python) has signed the
 [PSF CLA](https://www.python.org/psf/contrib/contrib-form/).
-
-[![Build Status](https://github.com/python/the-knights-who-say-ni/workflows/ci/badge.svg?branch=master&event=push)](https://github.com/python/the-knights-who-say-ni/actions?query=workflow%3Aci)
-[![codecov.io](https://codecov.io/github/python/the-knights-who-say-ni/coverage.svg?branch=master)](https://codecov.io/github/python/the-knights-who-say-ni?branch=master)
 
 ## Why is this project necessary?
 A CLA is necessary to make sure that someone contributing to an
