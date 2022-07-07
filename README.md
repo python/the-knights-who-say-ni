@@ -4,7 +4,9 @@
 > and as such is no longer being maintained.
 >
 > The current CLA bot infrastructure is based on
-> [edgedb/cla-bot](https://github.com/edgedb/cla-bot/).
+> [edgedb/cla-bot](https://github.com/edgedb/cla-bot/)
+> and lives at [apps/cpython-cla-bot](https://github.com/apps/cpython-cla-bot#-who-says-ekke-ekke-ekke-ekke-ptang-zoom-boing).
+> See [the discussion](https://discuss.python.org/t/14961) for more details.
 >
 > What follows is the original README with potentially outdated information.
 
